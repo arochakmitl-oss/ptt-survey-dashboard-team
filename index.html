@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PTT Station Survey — Key Findings (Team)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f5f6f8;
+    --surface: #ffffff;
+    --ink: #0e1015;
+    --ink-2: #4d5560;
+    --muted: #8a919c;
+    --grid: #e6e8ec;
+    --baseline: #c6cad1;
+    --border: rgba(14,16,21,0.07);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #4a3aa7;
+    --bar: #2a78d6;
+    --bar-track: #eef0f3;
+    --good: #0ca30c;
+    --crit: #d03b3b;
+    --accent-grad: linear-gradient(120deg, #2a78d6 0%, #6a5ae0 100%);
+    --shadow: 0 1px 2px rgba(14,16,21,.05), 0 10px 30px -12px rgba(14,16,21,.12);
+    --shadow-lg: 0 2px 6px rgba(14,16,21,.06), 0 22px 48px -18px rgba(14,16,21,.20);
+    --glass: rgba(255,255,255,.72);
+    --mesh1: rgba(42,120,214,.10);
+    --mesh2: rgba(106,90,224,.08);
+    --mesh3: rgba(237,161,0,.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #0b0c0f;
+      --surface: #16181d;
+      --ink: #f4f5f7;
+      --ink-2: #b6bcc6;
+      --muted: #7d8590;
+      --grid: #262930;
+      --baseline: #3a3e47;
+      --border: rgba(255,255,255,0.08);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #9085e9;
+      --bar: #3987e5;
+      --bar-track: #22252b;
+      --accent-grad: linear-gradient(120deg, #3987e5 0%, #9085e9 100%);
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.5);
+      --shadow-lg: 0 2px 6px rgba(0,0,0,.45), 0 22px 48px -18px rgba(0,0,0,.6);
+      --glass: rgba(16,17,21,.66);
+      --mesh1: rgba(57,135,229,.14);
+      --mesh2: rgba(144,133,233,.10);
+      --mesh3: rgba(201,133,0,.08);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    font-size: 15px; line-height: 1.55;
+    overflow: clip; /* clip = ห้าม scroll แม้จากสคริปต์ กันสไลด์เลื่อนหลุดตำแหน่ง */
+  }
+  html { overflow: clip; }
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(900px 500px at 8% -10%, var(--mesh1), transparent 60%),
+      radial-gradient(800px 520px at 100% 0%, var(--mesh2), transparent 60%),
+      radial-gradient(700px 500px at 50% 110%, var(--mesh3), transparent 60%);
+  }
+
+  /* ---- deck ---- */
+  #deck { height: 100%; display: flex; transition: transform .5s cubic-bezier(.35,0,.15,1); }
+  .slide {
+    min-width: 100%; height: 100%; padding: 64px 6vw 40px;
+    display: flex; flex-direction: column; overflow-y: auto;
+  }
+  /* spacer ท้ายเนื้อหา กันแถบนำทางบังข้อมูลตอนเลื่อนสุด */
+  .slide .inner::after { content: ""; display: block; height: 120px; flex-shrink: 0; }
+  .slide .inner { max-width: 1160px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .slide .inner > :not(.grow) { flex-shrink: 0; }
+
+  /* ---- top chrome ---- */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+    display: flex; align-items: center; gap: 14px; padding: 12px 22px 10px;
+    font-size: 12.5px; color: var(--ink-2);
+    background: var(--glass); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border-bottom: 1px solid var(--border);
+  }
+  #topbar .brand { font-weight: 700; color: var(--ink); letter-spacing: -.2px; }
+  #topbar .crumb { color: var(--muted); }
+  #topbar .live { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 18%, transparent); }
+  .dot.stale { background: var(--crit); box-shadow: 0 0 0 3px color-mix(in srgb, var(--crit) 18%, transparent); }
+  .newbadge { background: var(--good); color: #fff; border-radius: 999px; padding: 1px 9px; font-size: 11px; font-weight: 700; display: none; }
+  /* ตัวเลขกำลังวิ่งไล่ค่า (odometer) — ไฮไลต์เบาๆ ระหว่างวิ่ง */
+  .numrun { color: var(--s1) !important; transition: color .3s ease; }
+
+  /* ---- bottom nav ---- */
+  #nav {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 30;
+    display: flex; align-items: center; gap: 14px;
+    padding: 8px 14px; border-radius: 999px;
+    background: var(--glass); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    opacity: .4; transition: opacity .25s ease;
+  }
+  #nav:hover, #nav:focus-within { opacity: 1; }
+  .navbtn {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: none; background: transparent; color: var(--ink);
+    font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .navbtn:hover { background: var(--bar-track); }
+  #dots { display: flex; gap: 7px; align-items: center; }
+  .navdot { width: 8px; height: 8px; border-radius: 50%; background: var(--baseline); cursor: pointer; border: none; padding: 0; transition: all .25s; }
+  .navdot.on { background: var(--s1); width: 22px; border-radius: 4px; }
+  #counter {
+    font-size: 11.5px; color: var(--muted); text-align: center;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+  }
+  #counter b { color: var(--ink); font-weight: 600; }
+  #fsbtn {
+    position: fixed; right: 18px; bottom: 20px; z-index: 31;
+    border: 1px solid var(--border); background: var(--glass); color: var(--ink-2);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-radius: 999px; padding: 8px 15px; font-size: 12px; cursor: pointer; box-shadow: var(--shadow);
+    opacity: .4; transition: opacity .25s ease;
+  }
+  #fsbtn:hover { color: var(--ink); opacity: 1; }
+
+  /* ---- typography ---- */
+  .eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 12px; }
+  h1.big {
+    font-size: clamp(32px, 5vw, 60px); font-weight: 700; letter-spacing: -1.5px; line-height: 1.08;
+    background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    padding-bottom: 4px;
+  }
+  h2.slidetitle { font-size: clamp(23px, 3vw, 36px); font-weight: 700; letter-spacing: -0.7px; margin-bottom: 4px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  h2.slidetitle .tag { font-size: 13.5px; font-weight: 600; color: #fff; border-radius: 999px; padding: 4px 15px; box-shadow: var(--shadow); }
+  .subtitle { color: var(--ink-2); font-size: clamp(14px, 1.4vw, 16.5px); margin-bottom: 4px; }
+  .hint { color: var(--muted); font-size: 13px; }
+
+  /* ---- tiles & cards ---- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; }
+  .tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 20px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .tile::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent-grad); opacity: .85; }
+  .tile .v { font-size: clamp(25px, 2.7vw, 36px); font-weight: 700; letter-spacing: -1px; }
+  .tile .l { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+  .tile .d { font-size: 11.5px; margin-top: 4px; font-weight: 600; }
+  .up { color: var(--good); } .down { color: var(--crit); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 20px 15px; min-width: 0; box-shadow: var(--shadow);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .card h3 { font-size: 13.5px; font-weight: 700; margin-bottom: 2px; letter-spacing: -.1px; }
+  .card .base { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; }
+
+  /* bullets */
+  .bullets { display: flex; flex-direction: column; gap: 10px; }
+  .bullet {
+    background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--s1);
+    border-radius: 12px; padding: 13px 17px; font-size: clamp(13.5px, 1.35vw, 15.5px); box-shadow: var(--shadow);
+  }
+  .bullet b { font-variant-numeric: tabular-nums; }
+  .bullet .cmp { color: var(--muted); font-size: .85em; }
+
+  /* bars */
+  .hrow { display: grid; grid-template-columns: minmax(0,1fr); gap: 2px; padding: 4px 0; border-radius: 8px; }
+  .hrow:hover { background: var(--bar-track); }
+  .hlab { font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
+  .htrack { display: flex; align-items: center; gap: 8px; }
+  .hbarwrap { flex: 1; height: 11px; background: var(--bar-track); border-radius: 0 5px 5px 0; overflow: hidden; }
+  .hbar { height: 100%; background: var(--bar); border-radius: 0 5px 5px 0; min-width: 2px; transition: width .6s cubic-bezier(.25,.7,.3,1); }
+  body.noanim .hbar { transition: none; }
+  .hval { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 86px; text-align: right; }
+  .hval b { color: var(--ink); }
+
+  /* donut */
+  .donutwrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .dlegend { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 7px; }
+  .dlegend .li { display: flex; align-items: flex-start; gap: 9px; font-size: 12.5px; color: var(--ink-2); }
+  .dlegend .sw { width: 11px; height: 11px; border-radius: 4px; margin-top: 4px; flex-shrink: 0; }
+  .dlegend b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* columns (timeline) */
+  .cols { display: flex; align-items: flex-end; gap: 8px; height: 110px; padding-top: 16px; }
+  .colu { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+  .colbar { width: 100%; max-width: 48px; background: var(--bar); border-radius: 6px 6px 0 0; min-height: 2px; }
+  .colv { font-size: 10.5px; color: var(--ink-2); margin-bottom: 3px; font-variant-numeric: tabular-nums; }
+  .coll { font-size: 10.5px; color: var(--muted); margin-top: 6px; border-top: 1px solid var(--grid); width: 100%; text-align: center; padding-top: 4px; white-space: nowrap; }
+
+  /* P×L matrix */
+  .matrix { display: grid; grid-template-columns: minmax(130px, 1.2fr) repeat(5, minmax(0,1fr)); gap: 6px; }
+  .matrix.cols7 { grid-template-columns: minmax(130px, 1.2fr) repeat(6, minmax(0,1fr)); }
+  .matrix.cols8 { grid-template-columns: minmax(150px, 1.4fr) repeat(6, minmax(0,1fr)) minmax(0, 1.15fr); }
+  .mcell { border-radius: 10px; padding: 10px 6px; text-align: center; font-variant-numeric: tabular-nums; min-width: 0; }
+  .mcell .cv { font-weight: 700; font-size: clamp(14px, 1.6vw, 19px); line-height: 1.2; }
+  .mcell .cp { font-size: 11px; opacity: .8; }
+  .mcell .cadd { font-size: 10px; font-weight: 700; margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .mhead { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; font-size: 12px; font-weight: 600; color: var(--ink-2); padding: 4px 2px; text-align: center; }
+  .mhead small { font-weight: 400; color: var(--muted); font-size: 10.5px; }
+  .mrowhead { display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 6px 10px; font-size: 12.5px; font-weight: 600; border-left: 4px solid var(--baseline); border-radius: 6px; }
+  .mrowhead small { font-weight: 400; color: var(--muted); font-size: 10.5px; }
+  .mtotal { background: var(--bar-track); }
+
+  /* 100% stacked bars */
+  .stackrow { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+  .stacklab { width: 150px; flex-shrink: 0; font-size: 12.5px; color: var(--ink-2); text-align: right; }
+  .stacktrack { flex: 1; display: flex; gap: 2px; height: 26px; }
+  .stackseg { border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 600; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .slegend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 10px; }
+  .slegend .li { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-2); }
+  .slegend .sw { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* ---- persona slide v2 ---- */
+  .phead {
+    display: flex; align-items: center; gap: 20px; padding: 18px 22px; border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 5px solid var(--pc, var(--s1));
+    box-shadow: var(--shadow); margin-bottom: 16px; flex-shrink: 0;
+  }
+  .pavatar {
+    width: 64px; height: 64px; border-radius: 14px; flex-shrink: 0;
+    background: var(--pc, var(--s1)); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; letter-spacing: -.5px;
+  }
+  .pheadtxt { min-width: 0; flex: 1; }
+  .demochips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .dchip {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 13px; font-size: 12px; color: var(--ink-2); box-shadow: var(--shadow);
+  }
+  .dchip b { color: var(--ink); }
+
+  .hero { position: relative; overflow: hidden; border-top: 3px solid var(--pc, var(--s1)); }
+  .herodivider { height: 1px; background: var(--grid); margin: 14px 0 10px; }
+  .herotrendtitle { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; }
+  .qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  .qfact { min-width: 0; border-left: 3px solid var(--bar-track); padding-left: 10px; border-radius: 2px; }
+  .qfact:hover { border-left-color: var(--pc, var(--s1)); }
+  .qlab { display: block; font-size: 10.5px; color: var(--muted); margin-bottom: 1px; }
+  .qval { font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+  .qval b { color: var(--pc, var(--s1)); font-variant-numeric: tabular-nums; margin-left: 2px; }
+  @media (max-width: 560px) { .qgrid { grid-template-columns: 1fr; } }
+  .hero .bigpct { font-size: clamp(46px, 5.5vw, 76px); font-weight: 700; letter-spacing: -2.5px; color: var(--pc, var(--s1)); line-height: 1.05; }
+  .hero .heroemoji { position: absolute; right: 16px; top: 12px; font-size: 56px; opacity: .16; }
+  .hero .herolabel { font-size: clamp(15px, 1.6vw, 18px); font-weight: 700; margin-top: 4px; }
+
+  .duo { padding: 9px 0; border-bottom: 1px dashed var(--grid); }
+  .duo:last-child { border-bottom: none; padding-bottom: 2px; }
+  .duolab { font-size: 12.5px; font-weight: 600; margin-bottom: 5px; display: flex; justify-content: space-between; gap: 8px; }
+  .duolab .pp { font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+  .duorow { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+  .duowho { width: 48px; font-size: 10.5px; color: var(--muted); text-align: right; flex-shrink: 0; }
+  .duorow.me .duowho { color: var(--ink); font-weight: 700; }
+  .duotrack { flex: 1; height: 13px; background: var(--bar-track); border-radius: 0 5px 5px 0; overflow: hidden; }
+  .duotrack.small { height: 8px; }
+  .dbar { height: 100%; border-radius: 0 5px 5px 0; min-width: 2px; }
+  .duoval { width: 42px; font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--ink-2); flex-shrink: 0; }
+  .duoval b { color: var(--ink); }
+
+  .journey { display: grid; grid-template-columns: 1fr 26px 1fr 26px 1fr; gap: 6px; align-items: stretch; }
+  .jstage {
+    background: var(--bar-track);
+    border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px;
+  }
+  .jstage h4 { font-size: 12px; font-weight: 700; margin-bottom: 6px; letter-spacing: .06em; }
+  .jstage h4 .stepno { color: var(--pc, var(--s1)); margin-right: 6px; font-variant-numeric: tabular-nums; }
+  .jarrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; }
+  .jfact { font-size: 12px; color: var(--ink-2); margin: 6px 0; line-height: 1.45; }
+  .jfact b { color: var(--ink); font-size: 15px; margin-right: 2px; }
+  @media (max-width: 900px) {
+    .journey { grid-template-columns: 1fr; }
+    .jarrow { transform: rotate(90deg); height: 20px; }
+  }
+
+  /* journey timeline: เส้นวิ่ง + จุด milestone */
+  .tl { position: relative; padding-top: 10px; }
+  .tlline {
+    position: absolute; top: 29px; left: 16.67%; right: 16.67%; height: 3px;
+    background: var(--bar-track); border-radius: 2px;
+  }
+  .tlfill { height: 100%; width: 100%; background: var(--pc, var(--s1)); border-radius: 2px; }
+  .tlcols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; position: relative; }
+  .tlcol { text-align: left; }
+  .tlcol h4 { text-align: center; }
+  .jq { display: block; font-size: 10.5px; color: var(--muted); margin-bottom: 1px; }
+  .ja { font-weight: 600; color: var(--ink); font-size: 12.5px; line-height: 1.45; }
+  .jpct { color: var(--pc, var(--s1)); font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+  .tlnode {
+    width: 38px; height: 38px; border-radius: 50%; margin: 0 auto 10px;
+    background: var(--surface); border: 3px solid var(--pc, var(--s1)); color: var(--pc, var(--s1));
+    font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; z-index: 1; box-shadow: var(--shadow);
+  }
+  .tlcol h4 { font-size: 12px; font-weight: 700; letter-spacing: .05em; margin-bottom: 6px; }
+  .tlcol .jfact { margin: 4px 0; }
+  .jlabel {
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; margin: 0 0 5px;
+  }
+  /* insight hook 1 ประโยคบนสุดของสไลด์ */
+  .hook {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--pc, var(--s1)); border-radius: 12px;
+    padding: 12px 18px 13px; margin-bottom: 16px; box-shadow: var(--shadow);
+  }
+  .hooklabel {
+    display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--pc, var(--s1)); font-weight: 700; margin-bottom: 3px;
+  }
+  .hooktext { font-size: clamp(16px, 2vw, 21px); font-weight: 700; line-height: 1.55; letter-spacing: -.2px; }
+  .hooktext b { color: var(--pc, var(--s1)); }
+
+  /* กรอบของแต่ละกลุ่ม action ใน journey — pain point ใช้เส้นแดง */
+  .jgroup {
+    background: var(--bar-track); border-radius: 10px;
+    border-left: 3px solid var(--pc, var(--s1));
+    padding: 9px 12px 10px; margin: 9px 0; text-align: left;
+  }
+  .jgroup.pain { border-left-color: var(--crit); }
+  .jgroup.pain .jlabel { color: var(--crit); }
+  .jgroup .jfact { margin: 7px 0 0; }
+  .jgroup .jfact:first-of-type { margin-top: 0; }
+  @media (max-width: 900px) {
+    .tlline { display: none; }
+    .tlcols { grid-template-columns: 1fr; }
+  }
+
+  /* So what?: Insight → Action */
+  .sowhat { border-left: 4px solid var(--pc, var(--s1)); }
+  .iarow { display: grid; grid-template-columns: 1fr 30px 1fr; gap: 10px; align-items: stretch; padding: 8px 0; border-bottom: 1px dashed var(--grid); }
+  .iarow:last-child { border-bottom: none; padding-bottom: 2px; }
+  .iacell { border-radius: 10px; padding: 10px 14px; font-size: clamp(12.5px, 1.3vw, 14.5px); line-height: 1.55; }
+  .iacell.insight { background: var(--bar-track); }
+  .iacell.action { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--pc, var(--s1)); font-weight: 600; }
+  .ialabel { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 3px; }
+  .iapct { color: var(--muted); font-size: .85em; }
+  .iaarrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; }
+  @media (max-width: 900px) {
+    .iarow { grid-template-columns: 1fr; }
+    .iaarrow { display: none; }
+  }
+
+  /* ---- interactivity ---- */
+  #tip {
+    position: fixed; z-index: 60; pointer-events: none;
+    background: rgba(14,16,21,.94); color: #fff;
+    border-radius: 10px; padding: 9px 13px; font-size: 12px; line-height: 1.5;
+    max-width: 280px; box-shadow: var(--shadow-lg);
+    opacity: 0; transform: translateY(4px); transition: opacity .15s ease, transform .15s ease;
+  }
+  @media (prefers-color-scheme: dark) {
+    #tip { background: rgba(244,245,247,.96); color: #16181d; }
+  }
+  #tip.show { opacity: 1; transform: translateY(0); }
+  #tip b { font-variant-numeric: tabular-nums; }
+  [data-tip] { cursor: default; }
+  .hrow { transition: background .15s ease; }
+  .hrow:hover .hbar { filter: brightness(1.15) saturate(1.1); }
+  .hrow:hover .hval b { color: var(--s1); }
+  .donutwrap circle[data-tip] { transition: stroke-width .18s ease, opacity .18s ease; cursor: pointer; }
+  .donutwrap circle[data-tip]:hover { stroke-width: 21; }
+  .donutwrap svg:hover circle[data-tip]:not(:hover) { opacity: .45; }
+  .mcell[data-tip] { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
+  .mcell[data-tip]:hover { transform: scale(1.06); box-shadow: var(--shadow-lg); position: relative; z-index: 2; }
+  .stackseg { transition: filter .15s ease, flex-grow .15s ease; cursor: pointer; }
+  .stackseg:hover { filter: brightness(1.15) saturate(1.15); }
+  .colu { cursor: pointer; }
+  .colu:hover .colbar { filter: brightness(1.15); }
+  .colu .colbar { transition: filter .15s ease; }
+  .navbtn, .chip, #fsbtn { transition: transform .12s ease, background .15s ease, color .15s ease; }
+  .navbtn:active, .chip:active, #fsbtn:active { transform: scale(.92); }
+  .chip:hover { transform: translateY(-1px); }
+
+  /* slide entrance */
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  .slide.entering .inner > * { animation: rise .5s cubic-bezier(.25,.7,.3,1) both; }
+  .slide.entering .inner > *:nth-child(2) { animation-delay: .06s; }
+  .slide.entering .inner > *:nth-child(3) { animation-delay: .12s; }
+  .slide.entering .inner > *:nth-child(4) { animation-delay: .18s; }
+  .slide.entering .inner > *:nth-child(5) { animation-delay: .24s; }
+  .slide.entering .inner > *:nth-child(6) { animation-delay: .3s; }
+  .slide.entering .inner > *:nth-child(n+7) { animation-delay: .36s; }
+  body.noanim .slide .inner > * { animation: none !important; }
+
+  /* layout helpers */
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 0; }
+  .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; min-height: 0; }
+  @media (max-width: 900px) { .row2, .row3 { grid-template-columns: 1fr; } }
+  .gap { height: 16px; flex-shrink: 0; }
+  .grow { flex: 1; min-height: 0; }
+
+  /* full dashboard slide */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 12px 0 4px; }
+  .fgroup { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .fgroup .flabel { font-size: 12px; color: var(--muted); margin-right: 2px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+    border-radius: 999px; padding: 5px 14px; font-size: 12.5px; cursor: pointer; box-shadow: var(--shadow);
+    transition: all .15s;
+  }
+  .chip:hover { color: var(--ink); }
+  .chip.on { background: var(--accent-grad); border-color: transparent; color: #fff; font-weight: 600; }
+  /* ตัวกรอง P/L ย้ายไปอยู่บน topbar (fixed) — แสดงเฉพาะตอนอยู่หน้า dashboard */
+  #topfilters {
+    display: none; flex-wrap: wrap; align-items: center; gap: 4px 14px;
+    margin-left: 10px; pointer-events: auto; min-width: 0;
+  }
+  body.on-dash #topfilters { display: flex; }
+  body.on-dash #topbar .crumb { display: none; }
+  #topfilters .chip { padding: 2px 10px; font-size: 11.5px; }
+  #topfilters .flabel { font-size: 11px; color: var(--muted); font-weight: 700; }
+  .dashhead { padding: 0 0 6px; border-bottom: 1px solid var(--grid); margin-bottom: 10px; }
+  .dashhead-top { display: flex; align-items: baseline; gap: 10px 26px; flex-wrap: wrap; }
+  h2.sec { font-size: 16px; font-weight: 700; margin: 28px 0 4px; display: flex; align-items: baseline; gap: 10px; letter-spacing: -.2px; }
+  h2.sec small { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .secline { height: 1px; background: var(--grid); margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card.wide { grid-column: 1 / -1; }
+  .note { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .footnote {
+    font-size: 11.5px; color: var(--muted); line-height: 1.8;
+    border-top: 1px solid var(--grid); padding-top: 10px; margin-top: 16px;
+  }
+  .footnote b { color: var(--ink-2); font-weight: 600; }
+
+  /* raw-answer modal */
+  .rawlink {
+    border: none; background: none; color: var(--s1); font-size: 11.5px; font-weight: 600;
+    cursor: pointer; padding: 0; margin-left: 8px; text-decoration: underline; text-underline-offset: 3px;
+    font-family: inherit;
+  }
+  .rawlink:hover { opacity: .75; }
+  #modal {
+    position: fixed; inset: 0; z-index: 70; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(10,11,14,.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  #modal.open { display: flex; }
+  #modalcard {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    box-shadow: var(--shadow-lg); width: min(680px, 100%); max-height: 82vh;
+    display: flex; flex-direction: column; padding: 20px 22px 16px;
+  }
+  #modalhead { display: flex; align-items: flex-start; gap: 12px; }
+  #modalhead h3 { font-size: 15.5px; font-weight: 700; flex: 1; }
+  #modalclose {
+    border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 13px; flex-shrink: 0;
+  }
+  #modalclose:hover { color: var(--ink); }
+  #modalsub { font-size: 12px; color: var(--muted); margin: 2px 0 12px; }
+  #modalfilters { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin-bottom: 10px; }
+  #modalfilters .chip { padding: 3px 11px; font-size: 12px; }
+  #mTheme {
+    border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+    border-radius: 999px; padding: 4px 12px; font-size: 12px; font-family: inherit; outline: none; max-width: 240px;
+  }
+  #modalsearch {
+    border: 1px solid var(--border); background: var(--bar-track); color: var(--ink);
+    border-radius: 10px; padding: 9px 14px; font-size: 13px; font-family: inherit;
+    outline: none; margin-bottom: 10px;
+  }
+  #modalsearch:focus { border-color: var(--s1); }
+  #modallist { overflow-y: auto; flex: 1; min-height: 0; }
+  .rawrow {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+    padding: 8px 4px; border-bottom: 1px solid var(--grid); font-size: 13px;
+  }
+  .rawrow:last-child { border-bottom: none; }
+  .rawtxt { overflow-wrap: anywhere; }
+  .rawn { color: var(--muted); font-size: 11.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  #loading {
+    position: fixed; inset: 0; z-index: 40; background: var(--page);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    font-size: 15px; color: var(--ink-2);
+  }
+  .ldots { display: flex; gap: 7px; }
+  .ldots span { width: 9px; height: 9px; border-radius: 50%; background: var(--s1); animation: ldot 1.1s ease-in-out infinite; }
+  .ldots span:nth-child(2) { animation-delay: .18s; }
+  .ldots span:nth-child(3) { animation-delay: .36s; }
+  @keyframes ldot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-6px); } }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="ldots"><span></span><span></span><span></span></div>กำลังโหลดข้อมูลจาก Google Form…</div>
+
+<div id="topbar">
+  <span class="brand">PTT Station Survey</span>
+  <span class="crumb">Before · During · After</span>
+  <span id="topfilters">
+    <span class="fgroup" id="pChips"><span class="flabel">P</span></span>
+    <span class="fgroup" id="lChips"><span class="flabel">L</span></span>
+  </span>
+  <span class="live">
+    <span class="newbadge" id="newBadge"></span>
+    <button class="chip" id="dlbtn" title="ดาวน์โหลดรายงานสรุปทั้งหมดเป็นไฟล์ Markdown">⬇ รายงาน .md</button>
+    <span class="dot" id="liveDot"></span>
+    <span id="liveText">โหลด…</span>
+  </span>
+</div>
+
+<div id="deck"></div>
+
+<div id="nav">
+  <button class="navbtn" id="prevBtn" aria-label="ก่อนหน้า">‹</button>
+  <div id="dots"></div>
+  <span id="counter"></span>
+  <button class="navbtn" id="nextBtn" aria-label="ถัดไป">›</button>
+</div>
+<button id="fsbtn">⛶ เต็มจอ · F</button>
+
+<div id="modal">
+  <div id="modalcard">
+    <div id="modalhead"><h3 id="modaltitle"></h3><button id="modalclose" aria-label="ปิด">✕</button></div>
+    <div id="modalsub"></div>
+    <div id="modalfilters">
+      <div class="fgroup" id="mGroups"><span class="flabel">กลุ่ม</span></div>
+      <div class="fgroup"><span class="flabel">ธีม</span><select id="mTheme"></select></div>
+    </div>
+    <input id="modalsearch" type="text" placeholder="ค้นหาคำตอบ…">
+    <div id="modallist"></div>
+  </div>
+</div>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSND0Wdgj2OFwzuw5aEehmnzxGHL6BmObnBexsmgYVSqpTpkiTJpCXQzq8D9zzWXo3TuL2Gzr69fSKD/pub?output=csv";
+const REFRESH_MS = 30000;
+
+/* ================= data layer ================= */
+function parseCSV(text) {
+  const rows = []; let row = [], field = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(field); field = ""; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c !== '\r') field += c;
+    }
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+let COL = {};
+function mapColumns(hdr) {
+  const find = (kw) => hdr.findIndex(h => h.includes(kw));
+  COL = {
+    ts: 0,
+    region: find("อาศัยอยู่ภาคไหน"),
+    age: find("ช่วงอายุ"),
+    gender: find("เพศ"),
+    job: find("อาชีพหลัก"),
+    pSeg: find("พฤติกรรมการใช้รถ/มาปั๊ม"),
+    vehicle: find("ขับรถอะไรเป็นหลัก"),
+    brand: find("ปั๊มที่คุณใช้บ่อยที่สุด"),
+    visitFreq: find("แวะปั๊มบ่อยแค่ไหน"),
+    regularVsCompare: find("ปั๊มที่ไปประจำ หรือพิจารณา"),
+    whyStation: find("ทำไมคุณถึงเลือกแวะปั๊มนั้น"),
+    checkPhone: find("ก่อนออกรถไปปั๊ม คุณมักเปิดมือถือ"),
+    decideAhead: find('ตัดสินใจว่า "จะแวะปั๊ม" ล่วงหน้า'),
+    planIfKnow: find("คิวสั้น–ห้องน้ำสะอาด–ที่จอดว่าง"),
+    decideInfluence: find('อะไรมีผลมากที่สุดต่อ "วิธีตัดสินใจเรื่องปั๊ม"'),
+    loyaltyFreq: find("ใช้ระบบสะสมแต้มของปั๊มบ่อยแค่ไหน"),
+    whoseAccount: find("ใช้บัญชีใครในการสะสม"),
+    redeemFreq: find("แลกแต้มสะสมของปั๊มบ่อยแค่ไหน"),
+    appImportance: find('แอปฯ ของปั๊ม "สำคัญ"'),
+    noAppWhy: find("ทำไมถึงยังไม่ได้สมัครสมาชิก"),
+    appTrigger: find("อะไรจะทำให้คุณตัดสินใจสมัคร"),
+    appsInstalled: find("แอปฯ ของปั๊มติดตั้งในมือถือ"),
+    appProblems: find("ปัญหาที่คุณเคยเจอในแอปฯ ปั๊ม"),
+    openWhen: find("อีกนานแค่ไหนหลังจากออกจากปั๊ม"),
+    openWhat: find("คุณเปิดเพื่อทำอะไร"),
+    fuelBehavior: find("พฤติกรรมการเติมน้ำมันแบบไหน"),
+    activities: find("นอกจากเติมน้ำมัน คุณทำอะไรบ้าง"),
+    stationProblems: find("ปั๊มที่คุณใช้ประจำ เคยเจอปัญหา"),
+    timeSlots: find("ช่วงเวลาที่คุณแวะปั๊มบ่อยที่สุด"),
+    payment: find("วิธีที่คุณใช้จ่ายค่าน้ำมัน"),
+    payProblems: find("ปัญหาเรื่องการจ่ายเงินที่ปั๊ม"),
+    autoPay: find("ระบบจ่ายเงินอัตโนมัติ"),
+    coffeeFreq: find("ซื้อกาแฟ/เครื่องดื่มจากร้านในปั๊มบ่อยแค่ไหน"),
+    cafeInfluence: find("ร้านกาแฟ/เครื่องดื่มในปั๊มมีผลกับการเลือกแวะปั๊ม"),
+    cafeUnhappy: find("ไม่พอใจร้านกาแฟ/เครื่องดื่มในปั๊ม"),
+    dwell: find("นั่งพักในปั๊ม คุณอยู่นานแค่ไหน"),
+    preOrder: find("สั่งกาแฟ/เครื่องดื่มไว้ก่อน"),
+    flashPromo: find('ลด 20% ใช้ได้ใน 15 นาทีนี้" ขณะที่คุณอยู่ในปั๊ม'),
+    bpAware: find("รู้จักหรือเคยได้ยิน"),
+    features: find("ที่คุณต้องการเมื่ออยู่ที่ปั๊ม"),
+    evFeatures: find("ที่คุณต้องการเมื่ออยู่ที่สถานีชาร์จ"),
+    lSeg: find("ข้อใดตรงกับการสะสมแต้มของคุณมากที่สุด? (เลือก 1"),
+    evChargeFreq: find("ชาร์จ EV ที่สถานีชาร์จนอกบ้านบ่อยแค่ไหน"),
+    evDecideAhead: find('ตัดสินใจว่า "จะแวะชาร์จ"'),
+    evCheckPhone: find("ก่อนออกรถไปชาร์จ"),
+    evInfluence: find("วิธีตัดสินใจเรื่องสถานีชาร์จ"),
+    evActivities: find("ระหว่างรอชาร์จ นอกจากชาร์จรถ"),
+    evPayment: find("จ่ายค่าชาร์จบ่อยที่สุด"),
+    evPayProblems: find("ปัญหาเรื่องการจ่ายค่าชาร์จ"),
+    evCoffee: find("ซื้อกาแฟ/เครื่องดื่มจากร้านในสถานีชาร์จ"),
+    evWhy: find("ทำไมถึงเลือกสถานีชาร์จนั้น"),
+    evApps: find("แอปฯ ของสถานีชาร์จอะไรบ้าง"),
+    evAppProblems: find("ปัญหาที่คุณเคยเจอในแอปฯ สถานีชาร์จ"),
+    evStationProblems: find("สถานีชาร์จที่ใช้ประจำ เคยเจอปัญหา"),
+  };
+}
+
+const P_MAP = [
+  ["ขับไป-กลับที่ทำงาน", "P1"],
+  ["ขับรถเป็นอาชีพ", "P2"],
+  ["ขับช่วงวันหยุด", "P3"],
+  ["ร้านกาแฟ/นั่งทำงาน", "P4"],
+];
+const P_INFO = {
+  P1: { name: "P1 · Daily Drivers", desc: "ขับไป-กลับที่ทำงาน/ธุระเป็นประจำทุกวัน", color: "--s1" },
+  P2: { name: "P2 · On the Road", desc: "ขับรถเป็นอาชีพ / เดินทางไกลบ่อย", color: "--s2" },
+  P3: { name: "P3 · Leisure Riders", desc: "ขับช่วงวันหยุด / ออกทริปเป็นครั้งคราว", color: "--s3" },
+  P4: { name: "P4 · Coffee Seekers", desc: "มาปั๊มเพื่อร้านกาแฟ/นั่งทำงาน มากกว่าเติมน้ำมัน", color: "--s4" },
+};
+const L_INFO = {
+  L1: { name: "L1 · Digital Collectors", desc: "มีแอป blueplus+ และสะสมแต้มประจำ" },
+  L2: { name: "L2 · Analog Collectors", desc: "สะสมแต้ม blueplus+ (บัตร/บอกเบอร์) แต่ไม่มีแอป" },
+  L3: { name: "L3 · Other Collectors", desc: "ไม่สะสม blueplus+ แต่สะสมแบรนด์อื่น" },
+  L4: { name: "L4 · Non-Collectors", desc: "ไม่สะสมแต้มเลย" },
+};
+function pOf(r) {
+  const v = r[COL.pSeg] || "";
+  for (const [kw, p] of P_MAP) if (v.includes(kw)) return p;
+  return null;
+}
+function lOf(r) {
+  const v = r[COL.lSeg] || "";
+  if (!v.trim()) return null;
+  if (v.includes("มีแอปฯ blueplus+")) return "L1";
+  if (v.includes("แต่ไม่มีแอปฯ") && v.includes("blueplus+ (บัตร")) return "L2";
+  if (v.includes("ไม่เคยสะสมแต้มเลย")) return "L4";
+  if (v.includes("ไม่สะสม blueplus+")) return "L3";
+  return null;
+}
+function normAge(v) {
+  if (!v) return "";
+  let s = v.replace(/\s*[-–]\s*/g, "–").trim();
+  if (!s.includes("ปี") && /\d/.test(s)) s += " ปี";
+  return s;
+}
+const AGE_ORDER = ["ต่ำกว่า 20 ปี","20–24 ปี","25–29 ปี","30–39 ปี","40–49 ปี","50–59 ปี","60 ปีขึ้นไป"];
+
+/* ยุบกลุ่มอาชีพ: รวมคำตอบพิมพ์เอง 288 แบบ (สะกดผิด/ภาษาอังกฤษ/คำพ้อง) เป็น 11 กลุ่ม */
+function normJob(v) {
+  const low = v.trim().toLowerCase();
+  const hasAny = kws => kws.some(k => low.includes(k));
+  if (hasAny(["เกษียณ","เกษียน","เกษียร","เกษียญ","บำนาญ","บำเหน็จ","retire","ผู้สูงอายุ","ผู้สูงวัย"])) return "เกษียณ / บำนาญ";
+  if (hasAny(["พนักงานเอกชน","พนักงานบริษัท","พนักงานโรงงาน","ลูกจ้าง","พนักงานรายวัน","ธุรการ"])) return "พนักงานเอกชน";
+  if (hasAny(["ข้าราชการ","รัฐวิสาหกิจ","ราชการ","ครู","อาจารย์","ทหาร","ตำรวจ","พยาบาล","อบต","เทศบาล","กำนัน","ผู้ใหญ่บ้าน","ของรัฐ","พนักงานรัฐ","มหาวิทยาลัย","พรก"])) return "ข้าราชการ / รัฐวิสาหกิจ";
+  if (hasAny(["แม่บ้าน","พ่อบ้าน","อยู่บ้าน"])) return "แม่บ้าน / พ่อบ้าน";
+  if (hasAny(["ธุรกิจ","ค้าขาย","แม่ค้า","พ่อค้า","ขายของ","กิจการ","เจ้าของ","ร้าน","sme","ผู้ประกอบการ","ส่วนตัว"])) return "ธุรกิจส่วนตัว / ค้าขาย / SME";
+  if (hasAny(["freelance","wfh","ฟรีแลนซ์","รับจ้าง","อิสระ","รับงาน","ที่ปรึกษา","consultant","ตัวแทนประกัน","ทนาย","นักลงทุน","ลงทุน"])) return "Freelance / รับจ้าง / อิสระ";
+  if (hasAny(["ขับรถ","แท็กซี่","ไรเดอร์","รถตู้","รถบรรทุก","ขนส่ง","grab","rider","ขับวิน","messenger"])) return "ขับรถอาชีพ";
+  if (hasAny(["เกษตร","ทำนา","ทำสวน","ทำไร่","ปลูก","เลี้ยงสัตว์","ประมง"])) return "เกษตรกร";
+  if (hasAny(["นักเรียน","นักศึกษา","เรียน"])) return "นักเรียน / นักศึกษา";
+  if (hasAny(["ไม่ได้ทำงาน","ว่างงาน","ไม่ทำงาน","ไม่มีงาน"])) return "ไม่ได้ทำงาน";
+  return "อื่นๆ";
+}
+
+const has = (r, col, kw) => {
+  const v = (r[col] || "").trim();
+  if (!v) return null;
+  return v.includes(kw);
+};
+const METRICS = [
+  { k: "pttMain",  label: "ใช้ PTT Station เป็นปั๊มหลัก", fn: r => has(r, COL.brand, "PTT Station") },
+  { k: "l1",       label: "มีแอป blueplus+ และสะสมประจำ", fn: r => { const l = lOf(r); return l ? l === "L1" : null; } },
+  { k: "coffee",   label: "ซื้อกาแฟบ่อยมาก–ทุกครั้งที่แวะ", fn: r => { const v = (r[COL.coffeeFreq]||"").trim(); return v ? (v.includes("ทุกครั้ง") || v.includes("บ่อยมาก")) : null; } },
+  { k: "plan",     label: "วางแผนแวะปั๊มตั้งแต่ก่อนออกบ้าน", fn: r => has(r, COL.decideAhead, "ก่อนออกบ้าน") },
+  { k: "freq",     label: "แวะปั๊ม ≥ 2–3 ครั้ง/สัปดาห์", fn: r => { const v = (r[COL.visitFreq]||"").trim(); return v ? /สัปดาห์|ทุกวัน/.test(v) : null; } },
+  { k: "preorder", label: "จะใช้ฟีเจอร์สั่งกาแฟล่วงหน้า", fn: r => { const v = (r[COL.preOrder]||"").trim(); return v ? v.startsWith("ใช้") : null; } },
+  { k: "autopay",  label: "พร้อมใช้จ่ายเงินอัตโนมัติทันที", fn: r => has(r, COL.autoPay, "ใช้แน่นอน") },
+  { k: "cafepull", label: "ร้านกาแฟมีผลมากต่อการเลือกปั๊ม", fn: r => { const v = (r[COL.cafeInfluence]||"").trim(); return v ? (v.includes("มีผลมาก") || v.includes("มาเพราะร้านกาแฟ")) : null; } },
+  { k: "sit",      label: "นั่งพัก/ทำงานที่ปั๊ม", fn: r => has(r, COL.activities, "นั่งพัก") },
+  { k: "toilet",   label: "เคยเจอห้องน้ำไม่สะอาดที่ปั๊มประจำ", fn: r => has(r, COL.stationProblems, "ห้องน้ำไม่สะอาด") },
+  { k: "qr",       label: "จ่ายผ่านแอปธนาคาร (QR) เป็นหลัก", fn: r => has(r, COL.payment, "แอปฯ ธนาคาร") },
+  { k: "flash",    label: "ซื้อแน่นอนถ้ามีโปรฯ ลด 20% ใน 15 นาที", fn: r => has(r, COL.flashPromo, "ซื้อแน่นอน") },
+  { k: "openday",  label: "เปิดแอปปั๊มภายในวันเดียวกันหลังแวะ", fn: r => has(r, COL.openWhen, "ภายในวันเดียวกัน") },
+  { k: "loyal",    label: "ใช้ปั๊มประจำ ไม่เทียบแบรนด์อื่น", fn: r => has(r, COL.regularVsCompare, "ไม่พิจารณา") },
+];
+/* จัดกลุ่มคำตอบปลายเปิด "ฟีเจอร์ที่อยากได้" เป็นธีม */
+/* [ชื่อธีม, คำที่ต้องมี, คำที่ห้ามมี (กันจัดผิดบริบท เช่น "เด็กปั๊ม" = พนักงาน ไม่ใช่มุมเด็ก)] */
+const FEATURE_THEMES = [
+  ["ส่วนลด / โปรโมชัน / คูปอง", ["ส่วนลด", "โปร", "คูปอง", "ลดราคา"]],
+  ["ร้านกาแฟ / เครื่องดื่ม", ["กาแฟ", "เครื่องดื่ม", "คาเฟ่", "amazon", "อเมซอน"]],
+  ["ร้านอาหาร / ของกิน / ขนม", ["อาหาร", "ของกิน", "ขนม", "ของทาน"]],
+  ["ร้านสะดวกซื้อ / ร้านค้า", ["สะดวกซื้อ", "เซเว่น", "7-11", "7-eleven", "ร้านค้า", "มินิมาร์ท"]],
+  ["ห้องน้ำสะอาด", ["ห้องน้ำ"]],
+  ["สะสม / แลกแต้ม", ["แต้ม", "สมาชิก"]],
+  ["การบริการของพนักงาน", ["พนักงาน", "เด็กปั๊ม", "staff", "มารยาท", "ยิ้ม", "สุภาพ", "ใส่ใจ", "อัธยาศัย", "บริการดี", "บริการเร็ว", "บริการไว", "เต็มน้ำมันไว"]],
+  ["บริการหน้าลาน (เช็ดกระจก เติมลม)", ["เช็ดกระจก", "เติมลม", "เช็คลม", "เช็กลม", "น้ำกลั่น"]],
+  ["ล้างรถ / คาร์แคร์", ["ล้างรถ", "คาร์แคร์", "car care", "ล้างอัดฉีด"]],
+  ["เช็กราคาน้ำมัน", ["ราคาน้ำมัน"]],
+  ["จ่ายเงินสะดวก / QR", ["จ่าย", "ชำระ", "qr", "สแกน", "แสกน"], ["ค่าใช้จ่าย"]],
+  ["ที่นั่งพัก / จุดพักผ่อน", ["ที่นั่ง", "นั่งพัก", "ที่พักผ่อน", "จุดพัก"]],
+  ["WiFi / ปลั๊ก / ชาร์จมือถือ", ["wifi", "ไวไฟ", "ปลั๊ก", "นั่งทำงาน", "ชาร์จมือถือ", "ชาร์จโทรศัพท์", "ชาร์จแบตโทรศัพท์"]],
+  ["เก้าอี้นวด / นวดผ่อนคลาย", ["นวด"]],
+  ["สวนหย่อม / พื้นที่สีเขียว", ["สวนหย่อม", "ต้นไม้", "สีเขียว", "สวนสวย", "สวนสาธารณะ", "สวน"], ["สวนทาง", "สวนกัน", "ขับสวน", "เดินสวน", "รถสวน"]],
+  ["จุดชาร์จ EV", ["ชาร์จ"], ["มือถือ", "โทรศัพท์"]],
+  ["มุมเด็ก / ครอบครัว", ["เด็ก"], ["เด็กปั๊ม"]],
+  ["ATM / ตู้กดเงิน", ["atm", "เอทีเอ็ม", "กดเงิน"]],
+  ["ที่จอดรถ", ["ที่จอด", "จอดรถ"]],
+  ["หลังคา / ที่ร่มกันแดดฝน", ["หลังคา", "กันแดด", "กันฝน", "ที่ร่ม"]],
+];
+function matchTheme(text, themeDef) {
+  const low = text.toLowerCase();
+  const kws = themeDef[1], excl = themeDef[2];
+  if (excl && excl.some(k => low.includes(k))) return false;
+  return kws.some(k => low.includes(k));
+}
+function countThemes(rows, col) {
+  const c = new Map(); let base = 0;
+  for (const r of rows) {
+    const v = (r[col] || "").trim();
+    if (!v) continue;
+    base++;
+    for (const th of FEATURE_THEMES) {
+      if (matchTheme(v, th)) c.set(th[0], (c.get(th[0]) || 0) + 1);
+    }
+  }
+  return { counts: c, base };
+}
+
+function pctMetric(rows, fn) {
+  let yes = 0, base = 0;
+  for (const r of rows) {
+    const v = fn(r);
+    if (v === null) continue;
+    base++; if (v) yes++;
+  }
+  return { yes, base, pct: base ? yes / base * 100 : 0 };
+}
+
+/* ================= aggregation ================= */
+const fmt = n => n.toLocaleString("en-US");
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const escAttr = s => s.replace(/"/g, "&quot;");
+function countSingle(rows, col, normFn) {
+  const c = new Map(); let base = 0;
+  for (const r of rows) {
+    let v = (r[col] || "").trim();
+    if (!v) continue;
+    if (normFn) v = normFn(v);
+    base++;
+    c.set(v, (c.get(v) || 0) + 1);
+  }
+  return { counts: c, base };
+}
+function countMulti(rows, col) {
+  const c = new Map(); let base = 0;
+  for (const r of rows) {
+    const v = (r[col] || "").trim();
+    if (!v) continue;
+    base++;
+    for (const tRaw of v.split(", ")) {
+      const t = tRaw.trim();
+      if (t) c.set(t, (c.get(t) || 0) + 1);
+    }
+  }
+  return { counts: c, base };
+}
+
+/* ================= render primitives ================= */
+function barChartHTML(title, res, opts = {}) {
+  const { order = null, topN = 12, multi = false, wide = false, accent = null, footnote = "" } = opts;
+  let entries = [...res.counts.entries()];
+  if (order) {
+    entries.sort((a, b) => {
+      const ia = order.indexOf(a[0]), ib = order.indexOf(b[0]);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+  } else entries.sort((a, b) => b[1] - a[1]);
+  let extraNote = "";
+  if (entries.length > topN) {
+    if (!multi && !order) {
+      const rest = entries.slice(topN - 1);
+      const sum = rest.reduce((s, e) => s + e[1], 0);
+      entries = entries.slice(0, topN - 1);
+      entries.push(["อื่นๆ (" + rest.length + " ตัวเลือก)", sum]);
+    } else {
+      entries = entries.slice(0, topN);
+      extraNote = `<div class="note">แสดง ${topN} อันดับแรก</div>`;
+    }
+  }
+  const max = Math.max(1, ...entries.map(e => e[1]));
+  const barStyle = accent ? `background:var(${accent})` : "";
+  const rows = entries.map(([k, n]) => {
+    const pct = res.base ? Math.round(n / res.base * 100) : 0;
+    const tipHtml = escAttr(`<b>${esc(k)}</b><br>${fmt(n)} คน · ${pct}%<br>จากผู้ตอบ ${fmt(res.base)} คน`);
+    return `<div class="hrow" data-tip="${tipHtml}">
+      <div class="hlab">${esc(k)}</div>
+      <div class="htrack">
+        <div class="hbarwrap"><div class="hbar" data-w="${(n / max * 100).toFixed(1)}%" style="width:${(n / max * 100).toFixed(1)}%;${barStyle}"></div></div>
+        <div class="hval"><b>${fmt(n)}</b> · ${pct}%</div>
+      </div>
+    </div>`;
+  }).join("");
+  const baseTxt = multi
+    ? `n = ${fmt(res.base)} · เลือกได้หลายข้อ (% = สัดส่วนของผู้ตอบ)`
+    : `n = ${fmt(res.base)}`;
+  const footHtml = footnote ? `<div class="note">${footnote}</div>` : "";
+  return `<div class="card${wide ? " wide" : ""}"><h3>${esc(title)}</h3><div class="base">${baseTxt}</div>${rows}${extraNote}${footHtml}</div>`;
+}
+
+function donutHTML(title, entries, names, colors, base, wide) {
+  const R = 46, CIRC = 2 * Math.PI * R;
+  let off = 0;
+  const segs = entries.map(([k, n], i) => {
+    const frac = base ? n / base : 0;
+    const len = Math.max(0, frac * CIRC - 2);
+    const nm = names[k]?.name || names[k] || k;
+    const tipHtml = escAttr(`<b>${esc(nm)}</b><br>${fmt(n)} คน · ${base ? Math.round(n/base*100) : 0}%`);
+    const s = `<circle r="${R}" cx="60" cy="60" fill="none" stroke="${colors[i % colors.length]}"
+      stroke-width="16" stroke-dasharray="${len} ${CIRC - len}" stroke-dashoffset="${-off}"
+      transform="rotate(-90 60 60)" data-tip="${tipHtml}" data-frac="${frac.toFixed(5)}" data-start="${(off / CIRC).toFixed(5)}"/>`;
+    off += frac * CIRC;
+    return s;
+  }).join("");
+  const legend = entries.map(([k, n], i) => {
+    const pct = base ? Math.round(n / base * 100) : 0;
+    return `<div class="li"><span class="sw" style="background:${colors[i % colors.length]}"></span>
+      <span>${esc(names[k]?.name || names[k] || k)} — <b>${fmt(n)}</b> (${pct}%)</span></div>`;
+  }).join("");
+  return `<div class="card${wide ? " wide" : ""}"><h3>${esc(title)}</h3><div class="base">n = ${fmt(base)}</div>
+    <div class="donutwrap">
+      <svg class="donut" width="120" height="120" viewBox="0 0 120 120">${segs}
+        <text x="60" y="65" text-anchor="middle" fill="currentColor" font-size="18" font-weight="700">${fmt(base)}</text>
+      </svg>
+      <div class="dlegend">${legend}</div>
+    </div></div>`;
+}
+
+/* ================= state ================= */
+let allRows = [], evRows = [];
+let filterP = null, filterL = null;
+let prevCount = 0, countdown = REFRESH_MS / 1000, lastOkTime = null;
+let cur = 0, firstRendered = false;
+const getCSS = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* ================= slides ================= */
+const SLIDE_IDS = ["s-title","s-personas","s-P1","s-P2","s-P3","s-P4","s-loyalty","s-ev","s-features","s-demo","s-dash"];
+const SLIDE_NAMES = [
+  "หน้าแรก",
+  "ภาพรวม Persona",
+  "P1 · Daily Drivers",
+  "P2 · On the Road",
+  "P3 · Leisure Riders",
+  "P4 · Coffee Seekers",
+  "blueplus+ & สะสมแต้ม",
+  "ผู้ใช้ EV",
+  "ฟีเจอร์ที่อยากได้",
+  "Demographic มีผลไหม",
+  "Dashboard รวม",
+];
+
+function buildDeckShell() {
+  const deck = document.getElementById("deck");
+  deck.innerHTML = SLIDE_IDS.map(id =>
+    `<section class="slide" id="${id}"><div class="inner"></div></section>`
+  ).join("");
+  const dots = document.getElementById("dots");
+  dots.innerHTML = SLIDE_IDS.map((_, i) => `<button class="navdot" data-i="${i}" aria-label="${SLIDE_NAMES[i]}" data-tip="${escAttr(`<b>${i + 1}. ${SLIDE_NAMES[i]}</b>`)}"></button>`).join("");
+  dots.querySelectorAll(".navdot").forEach(d => d.onclick = () => goTo(+d.dataset.i));
+}
+function inner(id) { return document.querySelector(`#${id} .inner`); }
+
+function renderTitle() {
+  const total = allRows.length + evRows.length;
+  const today = new Date();
+  const todayKey = `${today.getMonth()+1}/${today.getDate()}/${today.getFullYear()}`;
+  const nToday = [...allRows, ...evRows].filter(r => (r[0]||"").startsWith(todayKey + " ")).length;
+  const dates = [...allRows, ...evRows].map(r => r[0]).filter(Boolean).sort();
+  const dstr = s => { const m = s.match(/^(\d+)\/(\d+)\/(\d+)/); return m ? `${m[2]}/${m[1]}/${m[3]}` : ""; };
+  const dObj = s => { const m = s.match(/^(\d+)\/(\d+)\/(\d+)/); return m ? new Date(+m[3], +m[1] - 1, +m[2]) : null; };
+  let launchDays = 0, dateRange = "–";
+  if (dates.length) {
+    const first = dObj(dates[0]), last = dObj(dates[dates.length - 1]);
+    if (first && last) launchDays = Math.round((last - first) / 86400000) + 1;
+    dateRange = `${dstr(dates[0])} – ${dstr(dates[dates.length - 1])}`;
+  }
+  inner("s-title").innerHTML = `
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="eyebrow">Quantitative Survey · Live Results</div>
+      <h1 class="big">พฤติกรรมการเข้าปั๊ม<br>PTT Station</h1>
+      <div class="subtitle" style="margin-top:14px">Before · During · After &nbsp;—&nbsp; Key Findings ตาม Persona (P1–P4, L1–L4)</div>
+      <div class="gap"></div>
+      <div class="tiles" style="max-width:840px">
+        <div class="tile"><div class="v">${fmt(total)}</div><div class="l">ผู้ตอบทั้งหมด</div></div>
+        <div class="tile"><div class="v">${fmt(nToday)}</div><div class="l">คำตอบวันนี้</div></div>
+        <div class="tile"><div class="v">${fmt(evRows.length)}</div><div class="l">ผู้ใช้ EV · ${total ? (evRows.length / total * 100).toFixed(1) : 0}% ของผู้ตอบทั้งหมด</div></div>
+        <div class="tile"><div class="v">${launchDays}</div><div class="l">วันนับตั้งแต่เปิดแบบสอบถาม<br>(${dateRange})</div></div>
+      </div>
+      <div class="gap"></div>
+      <div class="hint">ตัวเลขอัปเดตอัตโนมัติทุก 30 วินาที · กด → เพื่อเลื่อนสไลด์ · กด F เพื่อเต็มจอ</div>
+    </div>`;
+}
+
+/* แถบ Key Insight 1 ประโยคบนสุดของสไลด์ */
+function hookBar(html) {
+  return `<div class="hook"><span class="hooklabel">Key Insight</span><div class="hooktext">${html}</div></div>`;
+}
+
+function renderPersonaOverview() {
+  const donutColors = [getCSS("--s1"), getCSS("--s2"), getCSS("--s3"), getCSS("--s4")];
+  const pCount = new Map(), lCount = new Map();
+  let pBase = 0, lBase = 0;
+  for (const r of allRows) {
+    const p = pOf(r); if (p) { pCount.set(p, (pCount.get(p)||0)+1); pBase++; }
+    const l = lOf(r); if (l) { lCount.set(l, (lCount.get(l)||0)+1); lBase++; }
+  }
+  const pE = ["P1","P2","P3","P4"].filter(k=>pCount.has(k)).map(k=>[k,pCount.get(k)]);
+  const lE = ["L1","L2","L3","L4"].filter(k=>lCount.has(k)).map(k=>[k,lCount.get(k)]);
+  const pNote = ["P1","P2","P3","P4"].map(k => `<b>${P_INFO[k].name}</b>: ${P_INFO[k].desc}`).join(" · ");
+  const lNote = ["L1","L2","L3","L4"].map(k => `<b>${L_INFO[k].name}</b>: ${L_INFO[k].desc}`).join(" · ");
+  const topP = pE.slice().sort((a, b) => b[1] - a[1])[0];
+  const topL = lE.slice().sort((a, b) => b[1] - a[1])[0];
+  const fqTop = [...countSingle(allRows, COL.visitFreq).counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  const loyTop = [...countSingle(allRows, COL.loyaltyFreq).counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  const hook = (topP && topL && pBase && lBase) ? hookBar(
+    `กลุ่มใหญ่ที่สุดคือ <b>${P_INFO[topP[0]].name}</b> ภาพรวมส่วนใหญ่แวะปั๊ม${fqTop && /^\d/.test(fqTop[0]) ? " " : ""}${esc(fqTop ? fqTop[0] : "")} — ด้านสะสมแต้ม กลุ่มใหญ่ที่สุดคือ <b>${L_INFO[topL[0]].name}</b> และส่วนใหญ่${esc(loyTop ? loyTop[0] : "")}`) : "";
+  inner("s-personas").innerHTML = `
+    ${hook}
+    <h2 class="slidetitle">ภาพรวม Persona</h2>
+    <div class="subtitle">ผู้ตอบสายน้ำมัน ${fmt(allRows.length)} คน แบ่งตามพฤติกรรมใช้รถ (P) และการสะสมแต้ม (L) · เลื่อนลงเพื่อดูตาราง P×L</div>
+    <div class="gap"></div>
+    <div class="row2" style="align-items:start">
+      ${donutHTML("สัดส่วนตามพฤติกรรมใช้รถ (P)", pE, P_INFO, donutColors, pBase)}
+      ${donutHTML("สัดส่วนตามการสะสมแต้ม (L)", lE, L_INFO, donutColors, lBase)}
+    </div>
+    <div class="gap"></div>
+    <div class="eyebrow" style="margin-bottom:10px">คนเลือกปั๊มจากอะไร — Category Expectations</div>
+    <div class="row2" style="align-items:start">
+      ${barChartHTML("ปัจจัยที่มีผลต่อการเลือกแวะปั๊ม", countMulti(allRows, COL.whyStation), { multi: true, topN: 8 })}
+      ${barChartHTML("ภักดีปั๊มประจำ หรือเปรียบเทียบหลายแบรนด์", countSingle(allRows, COL.regularVsCompare), { topN: 6 })}
+    </div>
+    <div class="gap"></div>
+    ${buildMatrixHTML()}
+    <div class="footnote">หมายเหตุ — ${pNote}<br>${lNote}</div>`;
+}
+
+/* ---- journey framework (ใช้ร่วมกันทั้งสายน้ำมันและ EV) ---- */
+function jrow(label, answer, pct) {
+  if (!answer) return "";
+  return `<div class="jfact"><span class="jq">${esc(label)}</span><span class="ja">${esc(answer)}</span> <span class="jpct">${pct}%</span></div>`;
+}
+function jTop(rows, col, label, opts = {}) {
+  const res = opts.multi ? countMulti(rows, col) : countSingle(rows, col);
+  if (opts.exclude) for (const k of [...res.counts.keys()]) if (k.includes(opts.exclude)) res.counts.delete(k);
+  const top = [...res.counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (!top || !res.base) return "";
+  return jrow(label, top[0], Math.round(top[1] / res.base * 100));
+}
+function journeyShell(stages) {
+  return `<div class="tl">
+    <div class="tlline"><div class="tlfill"></div></div>
+    <div class="tlcols">
+      ${stages.map((s, i) => `<div class="tlcol">
+        <div class="tlnode">0${i + 1}</div>
+        <h4>${s.title}</h4>
+        ${s.groups.map(g => `<div class="jgroup${/pain/i.test(g.label) ? " pain" : ""}">
+          <div class="jlabel">${g.label}</div>${g.html}
+        </div>`).join("")}
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+function hexToRgb(hex) {
+  const m = hex.replace("#","");
+  return [parseInt(m.slice(0,2),16), parseInt(m.slice(2,4),16), parseInt(m.slice(4,6),16)];
+}
+
+function buildMatrixHTML() {
+  const Ps = ["P1","P2","P3","P4"], Ls = ["L1","L2","L3","L4"];
+  const donutColors = [getCSS("--s1"), getCSS("--s2"), getCSS("--s3"), getCSS("--s4")];
+  const [br, bg, bb] = hexToRgb(getCSS("--s1"));
+  const cnt = {}; const colTot = { L1:0, L2:0, L3:0, L4:0 }; let total = 0;
+  Ps.forEach(p => cnt[p] = { L1:0, L2:0, L3:0, L4:0, row:0 });
+  // นับคนที่ตอบเข้ามาตั้งแต่ 6 ส.ค. 2026 แยกไว้เป็น +N ของแต่ละช่อง
+  const SINCE = new Date(2026, 7, 6);
+  const isSince = ts => {
+    const mm = (ts || "").match(/^(\d+)\/(\d+)\/(\d+)/);
+    return mm ? new Date(+mm[3], +mm[1] - 1, +mm[2]) >= SINCE : false;
+  };
+  const cntT = {}; const colTotT = { L1:0, L2:0, L3:0, L4:0 }; let totalT = 0;
+  Ps.forEach(p => cntT[p] = { L1:0, L2:0, L3:0, L4:0, row:0 });
+  for (const r of allRows) {
+    const p = pOf(r), l = lOf(r);
+    if (!p || !l) continue;
+    cnt[p][l]++; cnt[p].row++; colTot[l]++; total++;
+    if (isSince(r[0])) { cntT[p][l]++; cntT[p].row++; colTotT[l]++; totalT++; }
+  }
+  const maxCell = Math.max(1, ...Ps.flatMap(p => Ls.map(l => cnt[p][l])));
+  const pcTot = n => total ? (n / total * 100) : 0;
+  const fmtPct = v => v >= 10 ? Math.round(v) + "%" : v.toFixed(1) + "%";
+  const addTag = (tN, onDark) => tN > 0 ? `<div class="cadd" style="color:${onDark ? "#c9f2c9" : "var(--good)"}">+${fmt(tN)}</div>` : "";
+
+  // สีตามขนาดกลุ่มตัวอย่าง: n ≥ 97 เขียว · 50–96 เหลือง · < 50 แดง
+  const sizeColor = n => n >= 97
+    ? { bg: "rgba(12,163,12,.16)", bd: "rgba(12,163,12,.45)", txt: "เพียงพอ (n ≥ 97)" }
+    : n >= 50
+      ? { bg: "rgba(250,178,25,.22)", bd: "rgba(250,178,25,.55)", txt: "ปานกลาง (n 50–96)" }
+      : { bg: "rgba(208,59,59,.16)", bd: "rgba(208,59,59,.45)", txt: "น้อย (n < 50)" };
+  const cell = (n, p, l) => {
+    const sc = sizeColor(n);
+    const rowPct = cnt[p].row ? Math.round(n / cnt[p].row * 100) : 0;
+    const colPct = colTot[l] ? Math.round(n / colTot[l] * 100) : 0;
+    const tN = cntT[p][l];
+    const tipHtml = escAttr(
+      `<b>${P_INFO[p].name} × ${L_INFO[l].name}</b><br>${fmt(n)} คน · ${fmtPct(pcTot(n))} ของทั้งหมด` +
+      `<br>คิดเป็น ${rowPct}% ของ ${p} · ${colPct}% ของ ${l}` +
+      `<br>ขนาดกลุ่มตัวอย่าง: ${sc.txt}` +
+      (tN > 0 ? `<br>เพิ่มตั้งแต่ 6 ส.ค. +${fmt(tN)} คน` : ""));
+    return `<div class="mcell" data-tip="${tipHtml}" style="background:${sc.bg};box-shadow:inset 0 0 0 1px ${sc.bd};color:var(--ink)">
+      <div class="cv">${fmt(n)}</div><div class="cp">${fmtPct(pcTot(n))}</div>${addTag(tN, false)}</div>`;
+  };
+
+  // แกน: P อยู่บน (คอลัมน์) · L อยู่ริมซ้าย (แถว)
+  let m = `<div class="matrix">`;
+  m += `<div class="mhead" style="justify-content:flex-end;align-items:flex-start;text-align:left">L \\ P</div>`;
+  m += Ps.map(p => `<div class="mhead">${P_INFO[p].name.replace(" · ", "<br>")}</div>`).join("");
+  m += `<div class="mhead">รวม</div>`;
+  Ls.forEach((l, i) => {
+    m += `<div class="mrowhead" style="border-left-color:${donutColors[i]}">${L_INFO[l].name}<small>${L_INFO[l].desc}</small></div>`;
+    m += Ps.map(p => cell(cnt[p][l], p, l)).join("");
+    m += `<div class="mcell mtotal"><div class="cv">${fmt(colTot[l])}</div><div class="cp">${fmtPct(pcTot(colTot[l]))}</div>${addTag(colTotT[l], false)}</div>`;
+  });
+  m += `<div class="mrowhead">รวม</div>`;
+  m += Ps.map(p => `<div class="mcell mtotal"><div class="cv">${fmt(cnt[p].row)}</div><div class="cp">${fmtPct(pcTot(cnt[p].row))}</div>${addTag(cntT[p].row, false)}</div>`).join("");
+  m += `<div class="mcell mtotal"><div class="cv">${fmt(total)}</div><div class="cp">100%</div>${addTag(totalT, false)}</div>`;
+  m += `</div>`;
+
+  const legend = `<div class="slegend">` + Ls.map((l, i) =>
+    `<span class="li"><span class="sw" style="background:${donutColors[i]}"></span>${L_INFO[l].name}</span>`).join("") + `</div>`;
+  const stacks = Ps.map(p => {
+    const segs = Ls.map((l, i) => {
+      const pctRow = cnt[p].row ? cnt[p][l] / cnt[p].row * 100 : 0;
+      const label = pctRow >= 8 ? Math.round(pctRow) + "%" : "";
+      const tipHtml = escAttr(`<b>${P_INFO[p].name} × ${L_INFO[l].name}</b><br>${fmt(cnt[p][l])} คน · ${Math.round(pctRow)}% ของกลุ่ม ${p}`);
+      return `<div class="stackseg" data-tip="${tipHtml}" data-w="${pctRow.toFixed(2)}%" style="width:${pctRow.toFixed(2)}%;background:${donutColors[i]}">${label}</div>`;
+    }).join("");
+    return `<div class="stackrow"><div class="stacklab">${P_INFO[p].name}<br><span style="color:var(--muted);font-size:10.5px">${fmt(cnt[p].row)} คน</span></div><div class="stacktrack">${segs}</div></div>`;
+  }).join("");
+
+  return `
+    <div class="card">
+      <h3>สัดส่วน Persona × Loyalty — แจกแจง 16 กลุ่มย่อย P1L1 – P4L4</h3>
+      <div class="base">คอลัมน์ = พฤติกรรมใช้รถ (P) · แถว = การสะสมแต้ม (L) · n = ${fmt(total)} · % = สัดส่วนของทั้งหมด · สีตามขนาดกลุ่มตัวอย่าง: <span style="color:var(--good);font-weight:600">เขียว n ≥ 97</span> · <span style="color:#c98500;font-weight:600">เหลือง n 50–96</span> · <span style="color:var(--crit);font-weight:600">แดง n &lt; 50</span></div>
+      ${m}
+    </div>
+    <div class="gap"></div>
+    <div class="card">
+      <h3>ส่วนผสม Loyalty ในแต่ละกลุ่ม P (เต็มแถบ = 100% ของกลุ่มนั้น)</h3>
+      <div class="base">ชี้ที่แถบเพื่อดูจำนวนคน</div>
+      ${legend}
+      ${stacks}
+    </div>`;
+}
+
+/* เทมเพลต "So what?" — insight (สิ่งที่เห็น) + action (สิ่งที่ควรทำ) เลือกจาก metric ที่กลุ่มนี้เด่น (+) หรือด้อย (−) */
+const SOWHAT = {
+  "pttMain+": { i: "ใช้ PTT เป็นปั๊มหลักสูงกว่ากลุ่มอื่น", a: "รักษาฐานด้วยสิทธิพิเศษสมาชิกต่อเนื่อง" },
+  "pttMain-": { i: "สัดส่วนใช้ PTT ต่ำกว่ากลุ่มอื่น", a: "ชิงส่วนแบ่งจากคู่แข่งด้วยโปรฯ ทดลองใช้" },
+  "l1+": { i: "มีแอปและสะสมแต้มเป็นนิสัยอยู่แล้ว", a: "ดันฟีเจอร์/แคมเปญใหม่ผ่านแอปกับกลุ่มนี้ก่อน" },
+  "l1-": { i: "สัดส่วนคนมีแอป blueplus+ ต่ำกว่ากลุ่มอื่น", a: "ชวนโหลดแอปด้วยสิทธิพิเศษหน้าปั๊ม" },
+  "coffee+": { i: "ซื้อกาแฟ/เครื่องดื่มบ่อยกว่ากลุ่มอื่น", a: "จัดโปรฯ คู่เติมน้ำมัน + เครื่องดื่ม" },
+  "coffee-": { i: "ยังซื้อกาแฟน้อยกว่ากลุ่มอื่น", a: "คูปองเครื่องดื่มแก้วแรกดึงเข้าร้าน Café Amazon" },
+  "plan+": { i: "วางแผนแวะปั๊มตั้งแต่ก่อนออกบ้าน", a: "ส่งโปรฯ/สถานะปั๊มผ่าน notification ก่อนเดินทาง" },
+  "plan-": { i: "ตัดสินใจหน้างานมากกว่าวางแผนล่วงหน้า", a: "เน้นป้ายหน้าปั๊มและ flash deal ณ จุดขาย" },
+  "freq+": { i: "แวะปั๊มถี่กว่ากลุ่มอื่น", a: "แคมเปญสะสมต่อเนื่อง (streak/missions)" },
+  "freq-": { i: "แวะปั๊มไม่บ่อย", a: "เพิ่มมูลค่าต่อครั้ง ทำทุกครั้งที่มาให้คุ้มค่า" },
+  "preorder+": { i: "เปิดรับการสั่งเครื่องดื่มล่วงหน้าสูง", a: "ใช้กลุ่มนี้นำร่องฟีเจอร์ pre-order" },
+  "autopay+": { i: "พร้อมใช้ระบบจ่ายเงินอัตโนมัติ", a: "ชวนเข้าโปรแกรมทดลอง auto-pay ก่อนใคร" },
+  "autopay-": { i: "ยังกังวลเรื่องจ่ายเงินอัตโนมัติ", a: "สื่อสารความปลอดภัย + ให้ตั้งวงเงินได้เอง" },
+  "cafepull+": { i: "ร้านกาแฟมีผลมากต่อการเลือกปั๊ม", a: "ใช้ Café Amazon เป็นแม่เหล็กดึงเข้าปั๊ม" },
+  "sit+": { i: "ชอบนั่งพัก/ทำงานที่ปั๊ม", a: "จัดพื้นที่นั่ง + โปรฯ เครื่องดื่มแก้วที่สอง" },
+  "toilet+": { i: "เจอปัญหาห้องน้ำบ่อยกว่ากลุ่มอื่น", a: "ยกระดับความสะอาดห้องน้ำ ก่อนเสียกลุ่มนี้ไป" },
+  "qr+": { i: "ถนัดจ่ายผ่านแอปธนาคาร (QR)", a: "ผูก payment เข้าแอป blueplus+ ให้จ่ายจบในแอปเดียว" },
+  "flash+": { i: "ตอบสนองโปรฯ จำกัดเวลาได้ดี", a: "ส่ง flash deal ระหว่างอยู่ในปั๊ม" },
+  "openday+": { i: "กลับมาเปิดแอปเร็วหลังใช้บริการ", a: "ส่งคูปอง follow-up ทันทีหลังออกจากปั๊ม" },
+  "loyal+": { i: "ภักดีต่อปั๊มประจำสูง", a: "เน้น retention ทำให้รู้สึกเป็นคนพิเศษ" },
+  "loyal-": { i: "เปรียบเทียบหลายแบรนด์ก่อนเลือกแวะ", a: "แข่งด้วยราคา/โปรฯ ที่เห็นได้ก่อนตัดสินใจ" },
+};
+
+function renderPersonaSlide(p) {
+  const info = P_INFO[p];
+  const rows = allRows.filter(r => pOf(r) === p);
+  const n = rows.length;
+  const share = allRows.length ? Math.round(n / allRows.length * 100) : 0;
+  // พฤติกรรมเด่นของกลุ่มนี้ — วัดจาก % ภายในกลุ่มเอง (ไม่เทียบ persona อื่น)
+  const topBehaviors = METRICS.map(m => ({ m, s: pctMetric(rows, m.fn) }))
+    .filter(x => x.s.base >= 30)
+    .sort((a, b) => b.s.pct - a.s.pct);
+  const behaviorRows = topBehaviors.slice(0, 6).map(x => {
+    const v = Math.round(x.s.pct);
+    const tip = escAttr(`<b>${esc(x.m.label)}</b><br>${fmt(x.s.yes)} จาก ${fmt(x.s.base)} คนในกลุ่มนี้ (${v}%)`);
+    return `<div class="hrow" data-tip="${tip}">
+      <div class="hlab">${esc(x.m.label)}</div>
+      <div class="htrack">
+        <div class="hbarwrap"><div class="hbar" data-w="${v}%" style="width:${v}%;background:var(--pc)"></div></div>
+        <div class="hval"><b>${v}%</b></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // โปรไฟล์ demographic
+  const topOf = res => [...res.counts.entries()].sort((a,b)=>b[1]-a[1])[0];
+  const pcOf = e => e ? Math.round(e[1] / n * 100) : 0;
+  const age = topOf(countSingle(rows, COL.age, normAge));
+  const job = topOf(countSingle(rows, COL.job, normJob));
+  const gen = topOf(countSingle(rows, COL.gender));
+  const reg = topOf(countSingle(rows, COL.region));
+  const chips = [
+    age && `<span class="dchip">อายุ <b>${esc(age[0])}</b> · ${pcOf(age)}%</span>`,
+    job && `<span class="dchip">อาชีพ <b>${esc(job[0])}</b> · ${pcOf(job)}%</span>`,
+    gen && `<span class="dchip">เพศ <b>${esc(gen[0])}</b> · ${pcOf(gen)}%</span>`,
+    reg && `<span class="dchip">พื้นที่ <b>${esc(reg[0])}</b> · ${pcOf(reg)}%</span>`,
+  ].filter(Boolean).join("");
+
+  // Journey framework: ทุกบรรทัด = คำถามสั้น → คำตอบอันดับ 1 → % (อ่านรู้เรื่องโดยไม่ต้องเดาบริบท)
+  const statK = k => pctMetric(rows, METRICS.find(m => m.k === k).fn);
+  const planRes = countSingle(rows, COL.planIfKnow);
+  const planYes = [...planRes.counts.entries()].filter(([k]) => k.includes("วางแผน")).reduce((s, e) => s + e[1], 0);
+  const journey = journeyShell([
+    { title: "ก่อนถึงปั๊ม — BEFORE", groups: [
+      { label: "ทำอะไร", html:
+          jTop(rows, COL.decideAhead, "ตัดสินใจว่าจะแวะปั๊มเมื่อไร") +
+          jTop(rows, COL.checkPhone, "เช็กอะไรในมือถือก่อนออก", { multi: true }) },
+      { label: "อะไรมีผลต่อการตัดสินใจ", html:
+          jTop(rows, COL.decideInfluence, "สิ่งที่มีผลต่อการเลือกปั๊มที่สุด") +
+          jTop(rows, COL.whyStation, "เหตุผลหลักที่เลือกแวะ", { multi: true }) },
+      { label: "โอกาส", html:
+          jrow("ถ้ารู้ข้อมูลปั๊มล่วงหน้า (คิว/ห้องน้ำ/ที่จอด)", "จะวางแผนแวะ", planRes.base ? Math.round(planYes / planRes.base * 100) : 0) },
+    ]},
+    { title: "ที่ปั๊ม — DURING", groups: [
+      { label: "ทำอะไร", html:
+          jTop(rows, COL.activities, "กิจกรรมยอดนิยมนอกจากเติมน้ำมัน", { multi: true }) +
+          jrow("ซื้อกาแฟ/เครื่องดื่ม", "บ่อยมาก–ทุกครั้งที่แวะ", Math.round(statK("coffee").pct)) },
+      { label: "อะไรมีผลต่อการตัดสินใจ", html:
+          jTop(rows, COL.payment, "วิธีจ่ายเงินหลัก") +
+          jTop(rows, COL.cafeInfluence, "บทบาทของร้านกาแฟ") },
+      { label: "Pain point อันดับ 1", html:
+          jTop(rows, COL.stationProblems, "ปัญหาที่ปั๊ม", { multi: true, exclude: "ไม่มีปัญหา" }) +
+          jTop(rows, COL.payProblems, "ปัญหาการจ่ายเงิน", { multi: true, exclude: "ไม่เคยพบปัญหา" }) },
+    ]},
+    { title: "หลังออกจากปั๊ม — AFTER", groups: [
+      { label: "ทำอะไร", html:
+          jTop(rows, COL.openWhen, "กลับมาเปิดแอปปั๊มอีกครั้ง") +
+          jTop(rows, COL.openWhat, "เปิดแอปเพื่อ", { multi: true }) },
+      { label: "การสะสมแต้ม", html:
+          jrow("สถานะสมาชิก", "มีแอป blueplus+ และสะสมประจำ", Math.round(statK("l1").pct)) +
+          jTop(rows, COL.redeemFreq, "ความถี่การแลกแต้ม") },
+      { label: "Pain point อันดับ 1", html:
+          jTop(rows, COL.appProblems, "ปัญหาในแอปปั๊ม", { multi: true }) },
+    ]},
+  ]);
+
+  // So what? — โอกาสธุรกิจจากพฤติกรรมเด่นภายในกลุ่ม (% สูงและมีเทมเพลต ไม่เทียบกลุ่มอื่น)
+  const ideas = topBehaviors
+    .filter(x => x.s.pct >= 40)
+    .map(x => ({ t: SOWHAT[x.m.k + "+"], x }))
+    .filter(o => o.t)
+    .slice(0, 3);
+  const sowhat = ideas.length ? `
+    <div class="card sowhat wide">
+      <h3>So what? — โอกาสสำหรับกลุ่มนี้</h3>
+      <div class="base">สร้างอัตโนมัติจากพฤติกรรมเด่นของกลุ่มนี้</div>
+      ${ideas.map(o => `
+      <div class="iarow">
+        <div class="iacell insight">
+          <div class="ialabel">Insight</div>
+          ${o.t.i} <span class="iapct">(${Math.round(o.x.s.pct)}% ของกลุ่มนี้)</span>
+        </div>
+        <div class="iaarrow">→</div>
+        <div class="iacell action">
+          <div class="ialabel">Action</div>
+          ${o.t.a}
+        </div>
+      </div>`).join("")}
+    </div>` : "";
+
+  // คำตอบอันดับ 1 ของกลุ่มนี้จากคำถามที่น่าสนใจ (คนละชุดกับ journey เพื่อไม่ให้ซ้ำ)
+  const qfact = (label, col, multi) => {
+    const res = multi ? countMulti(rows, col) : countSingle(rows, col);
+    const top = [...res.counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (!top) return "";
+    const pct = res.base ? Math.round(top[1] / res.base * 100) : 0;
+    const tip = escAttr(`<b>${esc(label)}</b><br>${esc(top[0])}<br>${fmt(top[1])} จาก ${fmt(res.base)} คน (${pct}%)`);
+    return `<div class="qfact" data-tip="${tip}">
+      <span class="qlab">${esc(label)}</span>
+      <span class="qval">${esc(top[0])} <b>${pct}%</b></span>
+    </div>`;
+  };
+  const heroFacts = `
+    <div class="herodivider"></div>
+    <div class="herotrendtitle">คำตอบอันดับ 1 ของกลุ่มนี้</div>
+    <div class="qgrid">
+      ${qfact("เหตุผลที่เลือกแวะปั๊ม", COL.whyStation, true)}
+      ${qfact("ปัญหาที่เจอบ่อยที่สุด", COL.stationProblems, true)}
+      ${qfact("ช่วงเวลาที่แวะบ่อยที่สุด", COL.timeSlots, true)}
+      ${qfact("วิธีจ่ายเงินยอดนิยม", COL.payment, false)}
+    </div>`;
+
+  // Pain Points เจาะลึกรายกลุ่ม: ตัดตัวเลือก "ไม่มีปัญหา" ไปไว้เป็นหมายเหตุ (ไม่เทียบกลุ่มอื่น)
+  const painCard = (title, col, excludeKw) => {
+    const res = countMulti(rows, col);
+    let noneCount = 0;
+    for (const [k, v] of [...res.counts]) {
+      if (excludeKw && k.includes(excludeKw)) { noneCount = v; res.counts.delete(k); }
+    }
+    const foot = (noneCount && res.base) ? `อีก ${Math.round(noneCount / res.base * 100)}% ตอบว่าไม่มีปัญหา` : "";
+    return barChartHTML(title, res, { multi: true, topN: 4, accent: info.color, footnote: foot });
+  };
+  const painSection = `
+    <div class="gap"></div>
+    <div class="eyebrow" style="margin-bottom:10px">Pain Points ของกลุ่มนี้</div>
+    <div class="grid">
+      ${painCard("ปัญหาที่ปั๊มประจำ", COL.stationProblems, "ไม่มีปัญหา")}
+      ${painCard("ปัญหาการจ่ายเงิน", COL.payProblems, "ไม่เคยพบปัญหา")}
+      ${painCard("ปัญหาในแอปฯ ปั๊ม", COL.appProblems, null)}
+      ${painCard("เหตุผลที่ไม่ซื้อ/ไม่พอใจร้านกาแฟ", COL.cafeUnhappy, "ไม่มีปัญหา")}
+    </div>`;
+
+  let heroHtml = "";
+  {
+    // ทุกกลุ่ม: โชว์ตัวเลือกที่กลุ่มนี้เลือกมากที่สุด + การแจกแจงภายในกลุ่ม (ไม่เทียบ P อื่น)
+    const res = countSingle(rows, COL.visitFreq);
+    const FREQ_ORDER = ["ทุกวันหรือมากกว่า","4–6 ครั้ง / สัปดาห์","2–3 ครั้ง / สัปดาห์","1 ครั้ง / สัปดาห์","2–3 ครั้ง / เดือน","เดือนละครั้งหรือน้อยกว่า"];
+    const entries = [...res.counts.entries()].sort((a, b) => {
+      const ia = FREQ_ORDER.indexOf(a[0]), ib = FREQ_ORDER.indexOf(b[0]);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+    const top = [...res.counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (top) {
+      const topPct = res.base ? Math.round(top[1] / res.base * 100) : 0;
+      const maxN = Math.max(1, ...entries.map(e => e[1]));
+      const bars = entries.map(([k, n]) => {
+        const pct = res.base ? Math.round(n / res.base * 100) : 0;
+        const isTop = k === top[0];
+        const tipHtml = escAttr(`<b>${esc(k)}</b><br>${fmt(n)} คน · ${pct}% ของกลุ่มนี้`);
+        return `<div class="hrow" data-tip="${tipHtml}">
+          <div class="hlab"${isTop ? ' style="font-weight:700;color:var(--ink)"' : ""}>${esc(k)}</div>
+          <div class="htrack">
+            <div class="hbarwrap"><div class="hbar" data-w="${(n / maxN * 100).toFixed(1)}%" style="width:${(n / maxN * 100).toFixed(1)}%;background:${isTop ? "var(--pc)" : "var(--baseline)"}"></div></div>
+            <div class="hval"><b>${fmt(n)}</b> · ${pct}%</div>
+          </div>
+        </div>`;
+      }).join("");
+      heroHtml = `
+    <div class="card hero">
+      <div class="base">เรื่องเด่นที่สุดของกลุ่มนี้ — แวะปั๊มบ่อยแค่ไหน</div>
+      <div class="bigpct">${topPct}%</div>
+      <div class="herolabel">แวะปั๊ม${/^\d/.test(top[0]) ? " " : ""}${esc(top[0])}</div>
+      <div class="hint" style="margin:4px 0 12px">คำตอบที่คนกลุ่มนี้เลือกมากที่สุด · ${fmt(top[1])} จาก ${fmt(res.base)} คน</div>
+      ${bars}
+      ${heroFacts}
+    </div>`;
+    }
+  }
+
+  // Key Insight: ตัวตนของกลุ่ม + พฤติกรรมเด่นภายในกลุ่มเอง (ไม่เทียบ persona อื่น)
+  const freqTop = [...countSingle(rows, COL.visitFreq).counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  const freqBase = countSingle(rows, COL.visitFreq).base;
+  const whyTopH = [...countMulti(rows, COL.whyStation).counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  const whyBaseH = countMulti(rows, COL.whyStation).base;
+  const hook = (freqTop && whyTopH) ? hookBar(
+    `${esc(info.desc)} — ส่วนใหญ่แวะปั๊ม${/^\d/.test(freqTop[0]) ? " " : ""}<b>${esc(freqTop[0])}</b> (${freqBase ? Math.round(freqTop[1] / freqBase * 100) : 0}%) และเหตุผลหลักที่เลือกแวะคือ "${esc(whyTopH[0])}" (${whyBaseH ? Math.round(whyTopH[1] / whyBaseH * 100) : 0}%)`) : "";
+
+  const el = inner("s-" + p);
+  el.style.setProperty("--pc", `var(${info.color})`);
+  el.innerHTML = `
+    ${hook}
+    <div class="phead">
+      <div class="pavatar">${p}</div>
+      <div class="pheadtxt">
+        <h2 class="slidetitle" style="margin-bottom:2px">${info.name} <span class="tag" style="background:var(${info.color})">${fmt(n)} คน · ${share}%</span></h2>
+        <div class="subtitle" style="margin-bottom:0">${info.desc}</div>
+        <div class="demochips">${chips}</div>
+      </div>
+    </div>
+    <div class="row2" style="align-items:stretch">
+      ${heroHtml}
+      <div class="card">
+        <h3>พฤติกรรมเด่นของกลุ่มนี้</h3>
+        <div class="base">% ของคนในกลุ่มที่ตอบตรงกับพฤติกรรมนั้น · เรียงจากมากไปน้อย (เฉพาะข้อมูลของกลุ่มนี้เอง)</div>
+        ${behaviorRows}
+      </div>
+    </div>
+    <div class="gap"></div>
+    <div class="card wide">
+      <h3>เส้นทางของกลุ่มนี้ Before → During → After</h3>
+      <div class="base">พฤติกรรมยอดนิยมในแต่ละช่วง (% ของกลุ่มนี้)</div>
+      ${journey}
+    </div>
+    ${painSection}
+    <div class="gap"></div>
+    ${sowhat}`;
+}
+
+function renderLoyalty() {
+  const donutColors = [getCSS("--s1"), getCSS("--s2"), getCSS("--s3"), getCSS("--s4")];
+  const lCount = new Map(); let lBase = 0;
+  for (const r of allRows) { const l = lOf(r); if (l) { lCount.set(l, (lCount.get(l)||0)+1); lBase++; } }
+  const lE = ["L1","L2","L3","L4"].filter(k=>lCount.has(k)).map(k=>[k,lCount.get(k)]);
+  const l2 = lCount.get("L2") || 0;
+  // นับเฉพาะคนที่มีแอป blueplus+ ติดตั้งจริง หารด้วยผู้ตอบสายน้ำมันทั้งหมด (คนข้ามคำถาม = ไม่มีแอป)
+  const openday = pctMetric(allRows, r => has(r, COL.openWhen, "ภายในวันเดียวกัน"));
+  const never = pctMetric(allRows, r => has(r, COL.openWhen, "ไม่เคยเปิด"));
+  // เจาะลึกรายกลุ่ม L
+  const byL = { L1: [], L2: [], L3: [], L4: [] };
+  for (const r of allRows) { const l = lOf(r); if (l) byL[l].push(r); }
+  const topN = (rows, col, n, multi = true) => {
+    const res = multi ? countMulti(rows, col) : countSingle(rows, col);
+    return { base: res.base, items: [...res.counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, n) };
+  };
+  const factLine = (label, cnt, base) => {
+    const pct = base ? Math.round(cnt / base * 100) : 0;
+    return `<div class="jfact" data-tip="${escAttr(`<b>${esc(label)}</b><br>${fmt(cnt)} จาก ${fmt(base)} คนที่ตอบ (${pct}%)`)}"><b>${pct}%</b> ${esc(label)}</div>`;
+  };
+  const factBlock = (title, top) => `<div class="herotrendtitle">${title} (ตอบ ${fmt(top.base)} คน)</div>` +
+    top.items.map(([t, c]) => factLine(t, c, top.base)).join("");
+  const lCard = (k, i, body) => `
+    <div class="card" style="border-top:3px solid ${donutColors[i]}">
+      <h3>${L_INFO[k].name} <span style="color:var(--muted);font-weight:400">· ${fmt(byL[k].length)} คน</span></h3>
+      <div class="base">${L_INFO[k].desc}</div>
+      ${body}
+    </div>`;
+
+  const open1 = pctMetric(byL.L1, r => has(r, COL.openWhen, "ภายในวันเดียวกัน"));
+  const l1Body = factBlock("ปัญหาแอปที่เจอบ่อยที่สุด", topN(byL.L1, COL.appProblems, 3)) +
+    `<div class="herodivider"></div><div class="jfact"><b>${Math.round(open1.pct)}%</b> กลับมาเปิดแอปภายในวันเดียวกันหลังแวะปั๊ม</div>`;
+  const l2Body = factBlock("ทำไมยังไม่มีแอป", topN(byL.L2, COL.noAppWhy, 3)) +
+    `<div class="herodivider"></div>` + factBlock("อะไรจะทำให้ยอมโหลดแอป", topN(byL.L2, COL.appTrigger, 2));
+  const l3Apps = topN(byL.L3, COL.appsInstalled, 4);
+  const bpInL3 = l3Apps.items.find(([t]) => t.includes("blueplus"));
+  l3Apps.items = l3Apps.items.filter(([t]) => !t.includes("blueplus")).slice(0, 2);
+  const l3Body = factBlock("แอปแบรนด์อื่นที่ใช้อยู่", l3Apps) +
+    (bpInL3 ? `<div class="jfact"><b>${l3Apps.base ? Math.round(bpInL3[1] / l3Apps.base * 100) : 0}%</b> มีแอป blueplus+ ติดเครื่องอยู่แล้วแต่ไม่สะสม</div>` : "") +
+    `<div class="herodivider"></div>` + factBlock("ทำไมไม่ใช้ blueplus+", topN(byL.L3, COL.noAppWhy, 2));
+  const l4Body = factBlock("ทำไมไม่สะสมแต้ม / ไม่มีแอป", topN(byL.L4, COL.noAppWhy, 3)) +
+    `<div class="herodivider"></div>` + factBlock("อะไรจะจูงใจได้บ้าง", topN(byL.L4, COL.appTrigger, 2));
+
+  // L2+L4 = คนที่ไม่ใช้แอปสะสมแต้ม — กี่ % ที่จริงๆ มีแอป blueplus+ ติดเครื่องอยู่แล้ว
+  const inactive = [...byL.L2, ...byL.L4];
+  const inactiveHasApp = inactive.filter(r => (r[COL.appsInstalled] || "").includes("blueplus+")).length;
+  const inactivePct = inactive.length ? Math.round(inactiveHasApp / inactive.length * 100) : 0;
+  const l1Share = lBase ? Math.round(byL.L1.length / lBase * 100) : 0;
+  const loyHook = hookBar(
+    `ฐานสมาชิกแข็งแรงมาก — <b>${l1Share}%</b> มีแอปและสะสมประจำอยู่แล้ว โอกาสที่ง่ายที่สุดคือพา L2 อีก <b>${fmt(l2)} คน</b> ที่สะสมแต้มอยู่แล้วขึ้นแอป`);
+
+  inner("s-loyalty").innerHTML = `
+    ${loyHook}
+    <h2 class="slidetitle">blueplus+ &amp; การสะสมแต้ม</h2>
+    <div class="subtitle">ฐานสมาชิกแข็งแรง แต่โอกาสอยู่ที่การพาคนสะสมแบบ analog ขึ้นแอป และทำให้คนกลับมาเปิดแอปบ่อยขึ้น · เฉพาะสายน้ำมัน ${fmt(allRows.length)} คน (ไม่รวมผู้ใช้ EV)</div>
+    <div class="gap"></div>
+    <div class="tiles">
+      <div class="tile"><div class="v">${inactivePct}%</div><div class="l">ของคนมีแอป แต่ไม่ได้เปิดใช้แอปเลย</div></div>
+      <div class="tile"><div class="v">${fmt(l2)}</div><div class="l">สะสมแต้มอยู่แล้วแต่ยังไม่มีแอป (L2) — เป้าชวนโหลดแอปที่ง่ายที่สุด</div></div>
+      <div class="tile"><div class="v">${Math.round(openday.pct)}%</div><div class="l">เปิดแอปภายในวันเดียวกันหลังแวะปั๊ม</div></div>
+      <div class="tile"><div class="v">${Math.round(never.pct)}%</div><div class="l">ไม่เคยเปิดแอปหลังออกจากปั๊ม</div></div>
+    </div>
+    <div class="gap"></div>
+    <div class="row3" style="align-items:start">
+      ${donutHTML("สัดส่วนกลุ่มสะสมแต้ม (L)", lE, L_INFO, donutColors, lBase)}
+      ${barChartHTML("Top ปัญหาที่เจอในแอปปั๊ม", countMulti(allRows, COL.appProblems), { multi: true, topN: 5 })}
+      ${barChartHTML("เปิดแอปเพื่อทำอะไร", countMulti(allRows, COL.openWhat), { multi: true, topN: 5 })}
+    </div>
+    <div class="gap"></div>
+    <div class="eyebrow" style="margin-bottom:10px">การสะสมและแลกแต้ม</div>
+    <div class="row3" style="align-items:start">
+      ${barChartHTML("ใช้ระบบสะสมแต้มบ่อยแค่ไหน", countSingle(allRows, COL.loyaltyFreq), { topN: 6 })}
+      ${barChartHTML("แลกแต้มบ่อยแค่ไหน", countSingle(allRows, COL.redeemFreq), { topN: 6 })}
+      ${barChartHTML("สะสมแต้มด้วยบัญชีใคร", countSingle(allRows, COL.whoseAccount), { topN: 6 })}
+    </div>
+    <div class="gap"></div>
+    <div class="eyebrow" style="margin-bottom:10px">เจาะลึกรายกลุ่ม L — ทำไมมี/ไม่มีแอป และอะไรจะเปลี่ยนใจเขาได้</div>
+    <div class="row2" style="align-items:stretch; row-gap:16px">
+      ${lCard("L1", 0, l1Body)}
+      ${lCard("L2", 1, l2Body)}
+      ${lCard("L3", 2, l3Body)}
+      ${lCard("L4", 3, l4Body)}
+    </div>`;
+}
+
+/* ---- slide: ฟีเจอร์ที่ลูกค้าอยากได้ (จากคำตอบปลายเปิด) ---- */
+function renderFeatures() {
+  // 5 กลุ่ม: P1–P4 (คำถามที่ปั๊ม) + EV (คำถามที่สถานีชาร์จ)
+  const groups = [
+    ...["P1","P2","P3","P4"].map(k => ({
+      k, name: P_INFO[k].name, color: `var(${P_INFO[k].color})`,
+      res: countThemes(allRows.filter(r => pOf(r) === k), COL.features),
+    })),
+    { k: "EV", name: "EV · ผู้ใช้รถไฟฟ้า", color: "var(--s5)", res: countThemes(evRows, COL.evFeatures) },
+  ];
+  const combined = { counts: new Map(), base: 0 };
+  for (const g of groups) {
+    combined.base += g.res.base;
+    for (const [t, n] of g.res.counts) combined.counts.set(t, (combined.counts.get(t) || 0) + n);
+  }
+  const pctOf = (res, t) => res.base ? (res.counts.get(t) || 0) / res.base * 100 : 0;
+  // แสดงทุกธีมที่มีคนพูดถึงจริง (≥ 5 คนรวมทุกกลุ่ม) เรียงจากพูดถึงมากสุด
+  const themes = [...combined.counts.entries()].filter(e => e[1] >= 5).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+  const maxPct = Math.max(1, ...themes.flatMap(t => groups.map(g => pctOf(g.res, t))));
+  const [br, bg, bb] = hexToRgb(getCSS("--s1"));
+
+  /* heatmap ธีม × กลุ่ม */
+  const cell = (t, g) => {
+    const v = pctOf(g.res, t);
+    const cnt = g.res.counts.get(t) || 0;
+    const a = 0.05 + (v / maxPct) * 0.8;
+    const fg = a > 0.45 ? "#fff" : "var(--ink)";
+    const tipHtml = escAttr(`<b>${esc(g.name)}</b><br>${esc(t)}<br>${fmt(cnt)} จาก ${fmt(g.res.base)} คนที่ตอบ (${v.toFixed(1)}%)<br>คลิกเพื่อดูคำตอบจริง`);
+    return `<div class="mcell" data-tip="${tipHtml}" data-mgroup="${g.k}" data-mtheme="${escAttr(t)}" style="background:rgba(${br},${bg},${bb},${a.toFixed(2)});color:${fg}">
+      <div class="cv">${v >= 9.5 ? Math.round(v) : v.toFixed(1)}%</div></div>`;
+  };
+  let m = `<div class="matrix cols7">`;
+  m += `<div class="mhead" style="justify-content:flex-end;align-items:flex-start;text-align:left">ธีม \\ กลุ่ม</div>`;
+  m += groups.map(g => `<div class="mhead">${g.name.replace(" · ", "<br>")}</div>`).join("");
+  m += `<div class="mhead">รวม</div>`;
+  for (const t of themes) {
+    m += `<div class="mrowhead" style="border-left-color:var(--s1)">${esc(t)}</div>`;
+    m += groups.map(g => cell(t, g)).join("");
+    m += `<div class="mcell mtotal" data-mgroup="ALL" data-mtheme="${escAttr(t)}" data-tip="${escAttr(`<b>ทุกกลุ่มรวมกัน</b><br>${esc(t)}<br>คลิกเพื่อดูคำตอบจริง`)}"><div class="cv">${Math.round(pctOf(combined, t))}%</div></div>`;
+  }
+  m += `</div>`;
+
+  /* insight อัตโนมัติ: เหมือนกัน vs ต่างกัน */
+  const commonThemes = themes.filter(t => groups.every(g => pctOf(g.res, t) >= 6));
+  const sameBullets = (commonThemes.length ? commonThemes : themes.slice(0, 2)).slice(0, 3).map(t => {
+    const range = groups.map(g => Math.round(pctOf(g.res, t)));
+    return `<div class="bullet" style="border-left-color:var(--s1)"><b>${esc(t)}</b> — ทั้ง 5 กลุ่มพูดถึงใกล้เคียงกัน (${Math.min(...range)}–${Math.max(...range)}%) ${t === themes[0] ? "และเป็นอันดับ 1 ของภาพรวม" : ""}</div>`;
+  }).join("");
+  const featHook = themes.length ? hookBar(
+    `ทุกกลุ่มขอ "<b>${esc(themes[0])}</b>" ตรงกันเป็นอันดับ 1 (${Math.round(pctOf(combined, themes[0]))}% ของคนที่ตอบ)${themes[1] ? ` รองลงมาคือ "${esc(themes[1])}" (${Math.round(pctOf(combined, themes[1]))}%)` : ""}`) : "";
+
+  inner("s-features").innerHTML = `
+    ${featHook}
+    <h2 class="slidetitle">ฟีเจอร์/บริการที่ลูกค้าอยากได้</h2>
+    <div class="subtitle">จากคำตอบปลายเปิด "ฟีเจอร์หรือบริการที่ต้องการเมื่ออยู่ที่ปั๊ม/สถานีชาร์จ" · ตอบรวม ${fmt(combined.base)} คน (น้ำมัน + EV) · จัดกลุ่มเป็นธีมอัตโนมัติ</div>
+    <div class="gap"></div>
+    <div class="card">
+      <h3>ความต้องการรายธีม แยกตามกลุ่ม (สีเข้ม = สัดส่วนคนพูดถึงสูง)</h3>
+      <div class="base">% = สัดส่วนของผู้ตอบคำถามนี้ในแต่ละกลุ่ม · ชี้ที่ช่องเพื่อดูจำนวนคน · EV ถามที่สถานีชาร์จ</div>
+      ${m}
+    </div>
+    <div class="gap"></div>
+    <div class="eyebrow" style="margin-bottom:8px">สิ่งที่ทุกกลุ่มพูดตรงกัน</div>
+    <div class="bullets">${sameBullets}</div>
+    <div class="gap"></div>
+    <div class="footnote">คลิกที่ช่องใดก็ได้ในตารางเพื่อเปิดดูคำตอบจริงของกลุ่ม/ธีมนั้น (ในหน้าต่างเลือกกรองกลุ่มหรือธีมอื่นต่อได้) · ธีมจัดกลุ่มด้วยคำสำคัญ คำตอบหนึ่งข้อความอาจเข้าหลายธีม</div>`;
+}
+
+/* ---- slide: Demographic มีผลไหม ---- */
+const AGE_YOUNG = ["ต่ำกว่า 20 ปี","20–24 ปี","25–29 ปี","30–39 ปี"];
+function demoSplits() {
+  return [
+    { key: "region", title: "พื้นที่", aShort: "กทม.", bShort: "ตจว.",
+      a: { name: "กรุงเทพฯ และปริมณฑล", rows: allRows.filter(r => (r[COL.region] || "").includes("กรุงเทพ")) },
+      b: { name: "ต่างจังหวัด", rows: allRows.filter(r => { const v = (r[COL.region] || "").trim(); return v && !v.includes("กรุงเทพ"); }) } },
+    { key: "gender", title: "เพศ", aShort: "หญิง", bShort: "ชาย",
+      a: { name: "หญิง", rows: allRows.filter(r => (r[COL.gender] || "").trim() === "หญิง") },
+      b: { name: "ชาย", rows: allRows.filter(r => (r[COL.gender] || "").trim() === "ชาย") } },
+    { key: "age", title: "อายุ", aShort: "<40 ปี", bShort: "40 ปี+",
+      a: { name: "ต่ำกว่า 40 ปี", rows: allRows.filter(r => AGE_YOUNG.includes(normAge(r[COL.age] || ""))) },
+      b: { name: "40 ปีขึ้นไป", rows: allRows.filter(r => { const v = normAge(r[COL.age] || ""); return v && !AGE_YOUNG.includes(v); }) } },
+  ];
+}
+function renderDemographic() {
+  const splits = demoSplits().map(sp => {
+    const diffs = METRICS.map(m => {
+      const pa = pctMetric(sp.a.rows, m.fn), pb = pctMetric(sp.b.rows, m.fn);
+      return { m, pa, pb, d: pa.pct - pb.pct };
+    }).filter(x => x.pa.base >= 30 && x.pb.base >= 30)
+      .sort((x, y) => Math.abs(y.d) - Math.abs(x.d));
+    const avgAbs = diffs.length ? diffs.reduce((s, x) => s + Math.abs(x.d), 0) / diffs.length : 0;
+    return { ...sp, diffs, avgAbs, maxAbs: diffs.length ? Math.abs(diffs[0].d) : 0 };
+  });
+
+  const splitCard = sp => {
+    const rowsHtml = sp.diffs.slice(0, 5).map(x => {
+      const cls = Math.abs(x.d) < 3 ? "" : (x.d >= 0 ? "up" : "down");
+      const tip = escAttr(`<b>${esc(x.m.label)}</b><br>${esc(sp.a.name)} ${Math.round(x.pa.pct)}% (${fmt(x.pa.yes)}/${fmt(x.pa.base)} คน)<br>${esc(sp.b.name)} ${Math.round(x.pb.pct)}% (${fmt(x.pb.yes)}/${fmt(x.pb.base)} คน)`);
+      return `<div class="duo" data-tip="${tip}">
+        <div class="duolab"><span>${esc(x.m.label)}</span><span class="pp ${cls}">ต่างกัน ${Math.abs(x.d).toFixed(0)}%</span></div>
+        <div class="duorow"><span class="duowho">${esc(sp.aShort)}</span>
+          <div class="duotrack"><div class="dbar" data-w="${Math.round(x.pa.pct)}%" style="width:${Math.round(x.pa.pct)}%;background:var(--s1)"></div></div>
+          <span class="duoval"><b>${Math.round(x.pa.pct)}%</b></span></div>
+        <div class="duorow"><span class="duowho">${esc(sp.bShort)}</span>
+          <div class="duotrack small"><div class="dbar" data-w="${Math.round(x.pb.pct)}%" style="width:${Math.round(x.pb.pct)}%;background:var(--baseline)"></div></div>
+          <span class="duoval">${Math.round(x.pb.pct)}%</span></div>
+      </div>`;
+    }).join("");
+    const verdict = sp.maxAbs < 5
+      ? `แทบไม่มีผล — ทุกพฤติกรรมต่างกันไม่เกิน ${Math.round(sp.maxAbs)}%`
+      : `มีผลบางเรื่อง — ต่างชัดสุด: ${esc(sp.diffs[0].m.label)} (${Math.abs(sp.diffs[0].d).toFixed(0)}%)`;
+    return `<div class="card">
+      <h3>${esc(sp.title)}: ${esc(sp.a.name)} vs ${esc(sp.b.name)}</h3>
+      <div class="base">${fmt(sp.a.rows.length)} vs ${fmt(sp.b.rows.length)} คน · แสดง 5 พฤติกรรมที่ต่างกันมากที่สุด · ${verdict}</div>
+      ${rowsHtml}
+    </div>`;
+  };
+
+  // สรุปอัตโนมัติ: มิติไหนมีผลมาก/น้อย
+  const ranked = [...splits].sort((a, b) => b.avgAbs - a.avgAbs);
+  const bullets = ranked.map((sp, i) => {
+    const top = sp.diffs[0];
+    const dirName = top.d >= 0 ? sp.a.name : sp.b.name;
+    const strength = sp.avgAbs >= 5 ? "มีผลชัดเจน" : sp.avgAbs >= 3 ? "มีผลปานกลาง" : "มีผลน้อย";
+    return `<div class="bullet" style="border-left-color:${i === 0 ? "var(--s1)" : "var(--baseline)"}">
+      <b>${esc(sp.title)} — ${strength}</b> (ความต่างเฉลี่ย ${sp.avgAbs.toFixed(1)}%)
+      <span class="cmp">· เรื่องที่ต่างชัดสุด: ${esc(top.m.label)} — ${esc(dirName)}สูงกว่า ${Math.abs(top.d).toFixed(0)}%</span>
+    </div>`;
+  }).join("");
+
+  const ranked0 = [...splits].sort((a, b) => b.avgAbs - a.avgAbs);
+  const dTop = ranked0[0].diffs[0];
+  const demoHook = dTop ? hookBar(
+    `<b>${esc(ranked0[0].title)}</b>มีผลชัดที่สุด (ต่างเฉลี่ย ${ranked0[0].avgAbs.toFixed(1)}%) — "${esc(dTop.m.label)}" ฝั่ง${esc(dTop.d >= 0 ? ranked0[0].a.name : ranked0[0].b.name)}สูงกว่า <b>${Math.abs(dTop.d).toFixed(0)}%</b> ส่วน${esc(ranked0[ranked0.length - 1].title)}มีผลน้อยที่สุด`) : "";
+
+  inner("s-demo").innerHTML = `
+    ${demoHook}
+    <h2 class="slidetitle">Demographic มีผลต่อพฤติกรรมไหม?</h2>
+    <div class="subtitle">เทียบพฤติกรรมสำคัญ ${METRICS.length} ตัว แยกตามพื้นที่ / เพศ / อายุ (เฉพาะสายน้ำมัน ${fmt(allRows.length)} คน)</div>
+    <div class="gap"></div>
+    <div class="eyebrow" style="margin-bottom:8px">สรุป — เรียงจากมิติที่มีผลมากที่สุด</div>
+    <div class="bullets">${bullets}</div>
+    <div class="gap"></div>
+    <div class="row3" style="align-items:start">
+      ${splits.map(splitCard).join("")}
+    </div>`;
+}
+
+/* ---- slide: สรุปผู้ใช้ EV ---- */
+function renderEV() {
+  const rows = evRows;
+  const n = rows.length;
+  const total = allRows.length + evRows.length;
+  const weekly = pctMetric(rows, r => { const v = (r[COL.evChargeFreq] || "").trim(); return v ? /สัปดาห์|ทุกวัน/.test(v) : null; });
+  const fRes = countThemes(rows, COL.evFeatures);
+  const fTop = [...fRes.counts.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  // Key Insight: ความถี่ชาร์จ + pain อันดับ 1
+  const evPainRes = countMulti(rows, COL.evStationProblems);
+  for (const k of [...evPainRes.counts.keys()]) if (k.includes("ไม่มีปัญหา")) evPainRes.counts.delete(k);
+  const evPainTop = [...evPainRes.counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  const evHook = hookBar(
+    `EV ยังเป็นกลุ่มเล็ก (<b>${total ? Math.round(n / total * 100) : 0}%</b> ของผู้ตอบ) แต่ <b>${Math.round(weekly.pct)}%</b> ชาร์จนอกบ้านทุกสัปดาห์${evPainTop ? ` — pain อันดับ 1 คือ "${esc(evPainTop[0])}" (${evPainRes.base ? Math.round(evPainTop[1] / evPainRes.base * 100) : 0}%)` : ""}`);
+
+  const el = inner("s-ev");
+  el.style.setProperty("--pc", "var(--s3)");
+  el.innerHTML = `
+    ${evHook}
+    <div class="phead">
+      <div class="pavatar">EV</div>
+      <div class="pheadtxt">
+        <h2 class="slidetitle" style="margin-bottom:2px">ผู้ใช้รถ EV <span class="tag" style="background:var(--s3)">${fmt(n)} คน · ${total ? Math.round(n / total * 100) : 0}% ของผู้ตอบ</span></h2>
+        <div class="subtitle" style="margin-bottom:0">ตอบชุดคำถามสถานีชาร์จโดยเฉพาะ · กลุ่มนี้ไม่ถูกกรองด้วย P/L</div>
+      </div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="v">${fmt(n)}</div><div class="l">ผู้ใช้ EV ทั้งหมด</div></div>
+      <div class="tile"><div class="v">${Math.round(weekly.pct)}%</div><div class="l">ชาร์จนอกบ้านอย่างน้อยสัปดาห์ละครั้ง</div></div>
+      <div class="tile"><div class="v" style="font-size:20px;padding-top:8px">${fTop ? esc(fTop[0]) : "–"}</div><div class="l">ฟีเจอร์ที่อยากได้มากที่สุด (คำตอบปลายเปิด${fTop ? ` · ${fmt(fTop[1])} คน` : ""})<button class="rawlink" data-raw="EV">ดูคำตอบจริง →</button></div></div>
+    </div>
+    <div class="gap"></div>
+    <div class="card">
+      <h3>เส้นทางผู้ใช้ EV — Before → During → After</h3>
+      <div class="base">ทุกบรรทัด: คำถาม → คำตอบอันดับ 1 ของกลุ่มนี้ → % ของผู้ตอบ</div>
+      ${journeyShell([
+        { title: "ก่อนถึงสถานีชาร์จ — BEFORE", groups: [
+          { label: "ทำอะไร", html:
+              jTop(rows, COL.evDecideAhead, "ตัดสินใจว่าจะแวะชาร์จเมื่อไร") +
+              jTop(rows, COL.evCheckPhone, "เช็กอะไรในมือถือก่อนออก", { multi: true }) },
+          { label: "อะไรมีผลต่อการตัดสินใจ", html:
+              jTop(rows, COL.evInfluence, "สิ่งที่มีผลต่อการเลือกสถานีที่สุด") +
+              jTop(rows, COL.evWhy, "เหตุผลหลักที่เลือกสถานีนี้", { multi: true }) },
+        ]},
+        { title: "ที่สถานีชาร์จ — DURING", groups: [
+          { label: "ทำอะไรระหว่างรอ", html:
+              jTop(rows, COL.evActivities, "กิจกรรมยอดนิยมระหว่างรอชาร์จ", { multi: true }) +
+              jTop(rows, COL.evCoffee, "ซื้อกาแฟ/เครื่องดื่มระหว่างรอ") },
+          { label: "การจ่ายเงิน", html: jTop(rows, COL.evPayment, "วิธีจ่ายค่าชาร์จหลัก") },
+          { label: "Pain point อันดับ 1", html:
+              jTop(rows, COL.evStationProblems, "ปัญหาที่สถานีชาร์จ", { multi: true, exclude: "ไม่มีปัญหา" }) +
+              jTop(rows, COL.evPayProblems, "ปัญหาการจ่ายเงิน", { multi: true, exclude: "ไม่เคยพบ" }) },
+        ]},
+        { title: "หลังชาร์จเสร็จ — AFTER", groups: [
+          { label: "แอปที่ใช้", html: jTop(rows, COL.evApps, "แอปสถานีชาร์จที่มีมากที่สุด", { multi: true }) },
+          { label: "Pain point อันดับ 1", html: jTop(rows, COL.evAppProblems, "ปัญหาในแอปสถานีชาร์จ", { multi: true }) },
+        ]},
+      ])}
+    </div>
+    <div class="gap"></div>
+    <div class="grid">
+      ${barChartHTML("ชาร์จนอกบ้านบ่อยแค่ไหน", countSingle(rows, COL.evChargeFreq),
+        { order: ["ทุกวันหรือมากกว่า","4–6 ครั้ง/สัปดาห์","2–3 ครั้ง/สัปดาห์","1 ครั้ง/สัปดาห์","2–3 ครั้ง/เดือน","น้อยกว่าเดือนละครั้ง (ชาร์จบ้านเป็นหลัก)"] })}
+      ${barChartHTML("เหตุผลที่เลือกสถานีชาร์จ", countMulti(rows, COL.evWhy), { multi: true, topN: 8 })}
+      ${barChartHTML("แอปฯ สถานีชาร์จที่มีในมือถือ", countMulti(rows, COL.evApps), { multi: true, topN: 8 })}
+      ${barChartHTML("ปัญหาในแอปฯ สถานีชาร์จ", countMulti(rows, COL.evAppProblems), { multi: true, topN: 8 })}
+      ${barChartHTML("ปัญหาที่สถานีชาร์จประจำ", countMulti(rows, COL.evStationProblems), { multi: true, topN: 8 })}
+      ${barChartHTML("ฟีเจอร์/บริการที่อยากได้ (จัดกลุ่มจากคำตอบปลายเปิด)", fRes, { multi: true, topN: 8 })}
+    </div>`;
+}
+
+function chipRow(el, keys, names, current, onPick) {
+  el.querySelectorAll(".chip").forEach(c => c.remove());
+  const mk = (key, label) => {
+    const b = document.createElement("button");
+    b.className = "chip" + ((current === key || (key === null && current === null)) ? " on" : "");
+    b.textContent = label;
+    b.onclick = () => onPick(current === key ? null : key);
+    el.appendChild(b);
+  };
+  mk(null, "ทั้งหมด");
+  keys.forEach(k => mk(k, names[k].name));
+}
+function timelineHTML(rows) {
+  const byDay = new Map();
+  const includeEV = !filterP && !filterL;
+  for (const r of (includeEV ? [...rows, ...evRows] : rows)) {
+    const m = (r[0] || "").match(/^(\d+)\/(\d+)\/(\d+)/);
+    if (!m) continue;
+    const key = `${m[3]}-${m[1].padStart(2,"0")}-${m[2].padStart(2,"0")}`;
+    byDay.set(key, (byDay.get(key) || 0) + 1);
+  }
+  const days = [...byDay.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  const max = Math.max(1, ...days.map(d => d[1]));
+  const cols = days.map(([d, n]) => {
+    const label = d.slice(8, 10) + "/" + d.slice(5, 7);
+    const tipHtml = escAttr(`<b>วันที่ ${label}</b><br>${fmt(n)} คำตอบ`);
+    return `<div class="colu" data-tip="${tipHtml}"><div class="colv">${fmt(n)}</div>
+      <div class="colbar" data-h="${(n / max * 100).toFixed(1)}%" style="height:${(n / max * 100).toFixed(1)}%"></div>
+      <div class="coll">${label}</div></div>`;
+  }).join("");
+  const noteTxt = includeEV ? "รวมทุกกลุ่ม (น้ำมัน + EV)" : "เฉพาะผู้ตอบตามตัวกรอง (ไม่รวม EV)";
+  return `<div class="card wide"><h3>จำนวนคำตอบรายวัน</h3><div class="base">${noteTxt}</div><div class="cols">${cols}</div></div>`;
+}
+
+function renderDashboard() {
+  const dashEl = document.getElementById("s-dash");
+  const keepScroll = dashEl ? dashEl.scrollTop : 0;
+  const rows = allRows.filter(r =>
+    (!filterP || pOf(r) === filterP) && (!filterL || lOf(r) === filterL)
+  );
+  // ผู้ใช้ EV ตอบข้อมูลประชากร/รถด้วย — รวมในกราฟทั่วไป (ยกเว้นตอนกรอง L เพราะ EV ไม่มีกลุ่ม L)
+  const evFiltered = filterL ? [] : evRows.filter(r => !filterP || pOf(r) === filterP);
+  const demoRows = [...rows, ...evFiltered];
+  const S = (t, note) => `<h2 class="sec">${t} <small>${note||""}</small></h2><div class="secline"></div>`;
+  let html = `
+    <div class="dashhead">
+      <div class="dashhead-top">
+        <h2 class="slidetitle" style="margin:0">Dashboard รวมทุกคำตอบ</h2>
+      </div>
+      <div class="hint" style="margin-top:5px">แสดง ${fmt(rows.length)} คน${(filterP||filterL) ? " ตามตัวกรอง" : " (สายน้ำมันทั้งหมด)"}${evFiltered.length ? ` · กราฟข้อมูลประชากร/รถ รวมผู้ใช้ EV อีก ${fmt(evFiltered.length)} คน` : ""} · ตัวกรอง P/L อยู่ที่แถบบนสุด ใช้ได้ตลอดเวลาเลื่อนดู</div>
+    </div>`;
+
+  html += S("ภาพรวมผู้ตอบ", "ข้อมูลประชากร (รวมผู้ใช้ EV)");
+  html += `<div class="grid">`;
+  html += timelineHTML(rows);
+  html += barChartHTML("ภูมิภาคที่อาศัย", countSingle(demoRows, COL.region));
+  html += barChartHTML("ช่วงอายุ", countSingle(demoRows, COL.age, normAge), { order: AGE_ORDER });
+  html += barChartHTML("เพศ", countSingle(demoRows, COL.gender), { topN: 5 });
+  html += barChartHTML("อาชีพหลัก (จัดกลุ่มจากคำตอบพิมพ์เอง)", countSingle(demoRows, COL.job, normJob), { topN: 11 });
+  html += barChartHTML("รถที่ใช้เป็นหลัก", countSingle(demoRows, COL.vehicle), { topN: 9 });
+  html += barChartHTML("แบรนด์ปั๊มที่ใช้บ่อย", countMulti(rows, COL.brand), { multi: true, topN: 8 });
+  html += `</div>`;
+
+  html += S("ก่อนถึงปั๊ม (Before)", "การวางแผนและการตัดสินใจเลือกปั๊ม");
+  html += `<div class="grid">`;
+  html += barChartHTML("แวะปั๊มบ่อยแค่ไหน", countSingle(rows, COL.visitFreq),
+    { order: ["ทุกวันหรือมากกว่า","4–6 ครั้ง / สัปดาห์","2–3 ครั้ง / สัปดาห์","1 ครั้ง / สัปดาห์","2–3 ครั้ง / เดือน","เดือนละครั้งหรือน้อยกว่า"] });
+  html += barChartHTML("เลือกปั๊มประจำ หรือเปรียบเทียบหลายแบรนด์", countSingle(rows, COL.regularVsCompare), { topN: 6 });
+  html += barChartHTML("เหตุผลที่เลือกแวะปั๊มนั้น", countMulti(rows, COL.whyStation), { multi: true });
+  html += barChartHTML("ก่อนออกรถ เช็กอะไรในมือถือ", countMulti(rows, COL.checkPhone), { multi: true });
+  html += barChartHTML("ตัดสินใจแวะปั๊มล่วงหน้านานแค่ไหน", countSingle(rows, COL.decideAhead), { topN: 8 });
+  html += barChartHTML("ถ้ารู้ล่วงหน้าว่าปั๊ม “คิวสั้น–ห้องน้ำสะอาด–ที่จอดว่าง–4.5★” จะวางแผนแวะไหม", countSingle(rows, COL.planIfKnow), { topN: 6 });
+  html += `</div>`;
+
+  html += S("ที่ปั๊ม (During)", "พฤติกรรมระหว่างอยู่ที่ปั๊ม การจ่ายเงิน และ Café Amazon");
+  html += `<div class="grid">`;
+  html += barChartHTML("พฤติกรรมการเติมน้ำมัน", countSingle(rows, COL.fuelBehavior), { topN: 6 });
+  html += barChartHTML("นอกจากเติมน้ำมัน ทำอะไรบ้าง", countMulti(rows, COL.activities), { multi: true });
+  html += barChartHTML("ปัญหาที่เคยเจอที่ปั๊มประจำ", countMulti(rows, COL.stationProblems), { multi: true });
+  html += barChartHTML("ช่วงเวลาที่แวะบ่อยที่สุด", countMulti(rows, COL.timeSlots), { multi: true });
+  html += barChartHTML("วิธีจ่ายค่าน้ำมันที่ใช้บ่อยที่สุด", countSingle(rows, COL.payment), { topN: 8 });
+  html += barChartHTML("ปัญหาการจ่ายเงินที่เคยพบ", countMulti(rows, COL.payProblems), { multi: true });
+  html += barChartHTML("ความสนใจระบบจ่ายเงินอัตโนมัติ", countSingle(rows, COL.autoPay), { topN: 6 });
+  html += barChartHTML("ซื้อกาแฟ/เครื่องดื่มบ่อยแค่ไหน", countSingle(rows, COL.coffeeFreq),
+    { order: ["ทุกครั้งที่แวะ","บ่อยมาก แต่ไม่ทุกครั้ง","บางครั้ง ตามอารมณ์","แทบไม่ซื้อ","ไม่เคยซื้อ ไม่ดื่ม"] });
+  html += barChartHTML("ร้านกาแฟมีผลต่อการเลือกแวะปั๊มแค่ไหน", countSingle(rows, COL.cafeInfluence), { topN: 6 });
+  html += barChartHTML("ความสนใจ “สั่งกาแฟไว้ก่อน รับพอดีตอนเสร็จ”", countSingle(rows, COL.preOrder), { topN: 6 });
+  html += barChartHTML("ถ้าแจ้ง “ลด 20% ใน 15 นาที” ขณะอยู่ในปั๊ม", countSingle(rows, COL.flashPromo), { topN: 6 });
+  html += barChartHTML("ครั้งล่าสุดนั่งพัก/แวะร้านกาแฟ อยู่นานแค่ไหน", countSingle(rows, COL.dwell), { topN: 6 });
+  html += `</div>`;
+
+  html += S("หลังออกจากปั๊ม (After)", "แต้มสะสม แอปฯ และ blueplus+");
+  html += `<div class="grid">`;
+  html += barChartHTML("ใช้ระบบสะสมแต้มบ่อยแค่ไหน", countSingle(rows, COL.loyaltyFreq), { topN: 6 });
+  html += barChartHTML("แลกแต้มบ่อยแค่ไหน", countSingle(rows, COL.redeemFreq), { topN: 6 });
+  html += barChartHTML("แอปฯ ของปั๊ม สำคัญแค่ไหน", countSingle(rows, COL.appImportance), { topN: 6 });
+  html += barChartHTML("แอปฯ ปั๊มที่ติดตั้งในมือถือ", countMulti(rows, COL.appsInstalled), { multi: true, topN: 8 });
+  html += barChartHTML("ปัญหาที่เคยเจอในแอปฯ ปั๊ม", countMulti(rows, COL.appProblems), { multi: true });
+  html += barChartHTML("หลังออกจากปั๊มนานแค่ไหนถึงเปิดแอปฯ", countSingle(rows, COL.openWhen), { topN: 7 });
+  html += barChartHTML("เปิดแอปฯ เพื่อทำอะไร", countMulti(rows, COL.openWhat), { multi: true, topN: 9 });
+  html += barChartHTML("รู้จัก blueplus+ หรือไม่", countSingle(rows, COL.bpAware), { topN: 6 });
+  html += `</div>`;
+
+  html += S("ผู้ใช้ EV", `n = ${fmt(evRows.length)} · ไม่ถูกกรองด้วย P/L`);
+  html += `<div class="grid">`;
+  html += barChartHTML("ชาร์จนอกบ้านบ่อยแค่ไหน", countSingle(evRows, COL.evChargeFreq), { topN: 8 });
+  html += barChartHTML("เหตุผลที่เลือกสถานีชาร์จ", countMulti(evRows, COL.evWhy), { multi: true });
+  html += barChartHTML("แอปฯ สถานีชาร์จที่มีในมือถือ", countMulti(evRows, COL.evApps), { multi: true, topN: 9 });
+  html += barChartHTML("ปัญหาในแอปฯ สถานีชาร์จ", countMulti(evRows, COL.evAppProblems), { multi: true });
+  html += barChartHTML("ปัญหาที่สถานีชาร์จประจำ", countMulti(evRows, COL.evStationProblems), { multi: true });
+  html += `</div>`;
+
+  inner("s-dash").innerHTML = html;
+  chipRow(document.getElementById("pChips"), ["P1","P2","P3","P4"], P_INFO, filterP, k => { filterP = k; renderDashboard(); animateCharts(document.getElementById("s-dash")); });
+  chipRow(document.getElementById("lChips"), ["L1","L2","L3","L4"], L_INFO, filterL, k => { filterL = k; renderDashboard(); animateCharts(document.getElementById("s-dash")); });
+  if (dashEl) dashEl.scrollTop = keepScroll;
+}
+
+/* ตัวเลขสำคัญที่จะเล่น flip เมื่อค่าเปลี่ยนตอนรีเฟรชข้อมูล */
+const FLIP_SEL = ".tile .v, .hero .bigpct, .mcell .cv, .hval b, .duoval b, .jfact b, .dlegend b, .colv, .stackseg";
+/* ชุดตัวเลขหลักที่จำนวน element คงที่เสมอ — ใช้เป็น fallback เมื่อโครงหน้าเปลี่ยน */
+const FLIP_SEL_STABLE = ".tile .v, .hero .bigpct, .mcell .cv";
+/* ตัวเลขวิ่งไล่จากค่าเก่า → ค่าใหม่ เหมือนมิเตอร์/หน้าปัดนาฬิกา */
+function runNumber(el, fromText, toText) {
+  const mTo = toText.trim().match(/^([\d,]+)(%?)$/);
+  const mFrom = fromText.trim().match(/^([\d,]+)(%?)$/);
+  if (!mTo || !mFrom) return; // ไม่ใช่ตัวเลขล้วน — แสดงค่าใหม่ทันที
+  const from = +mFrom[1].replace(/,/g, ""), to = +mTo[1].replace(/,/g, "");
+  if (from === to) return;
+  const suffix = mTo[2];
+  const useComma = mTo[1].includes(",") || to >= 1000;
+  const DUR = 1400, start = performance.now();
+  el.classList.add("numrun");
+  if (el._numrun) cancelAnimationFrame(el._numrun);
+  function frame(now) {
+    const t = Math.min(1, (now - start) / DUR);
+    const e = 1 - Math.pow(1 - t, 3); // ช้าลงตอนใกล้ถึงค่าจริง
+    const v = Math.round(from + (to - from) * e);
+    el.textContent = (useComma ? v.toLocaleString("en-US") : v) + suffix;
+    if (t < 1) el._numrun = requestAnimationFrame(frame);
+    else { el._numrun = null; el.classList.remove("numrun"); }
+  }
+  el._numrun = requestAnimationFrame(frame);
+}
+function flipChanged(selector, prevVals) {
+  const els = [...document.querySelectorAll(selector)];
+  if (!prevVals || els.length !== prevVals.length) return false;
+  els.forEach((e, i) => {
+    if (e.textContent !== prevVals[i]) runNumber(e, prevVals[i], e.textContent);
+  });
+  return true;
+}
+function renderAll(silent = false) {
+  let prevVals = null, prevStable = null;
+  if (silent) {
+    document.body.classList.add("noanim");
+    prevVals = [...document.querySelectorAll(FLIP_SEL)].map(e => e.textContent);
+    prevStable = [...document.querySelectorAll(FLIP_SEL_STABLE)].map(e => e.textContent);
+  }
+  renderTitle();
+  renderPersonaOverview();
+  ["P1","P2","P3","P4"].forEach(renderPersonaSlide);
+  renderLoyalty();
+  renderEV();
+  renderFeatures();
+  renderDemographic();
+  renderDashboard();
+  if (silent) {
+    // ค่าที่เปลี่ยน → flip เฉพาะตัวนั้น ถ้าโครงหน้าเปลี่ยนจน index ไม่ตรง ใช้ชุดตัวเลขหลักแทน
+    if (!flipChanged(FLIP_SEL, prevVals)) flipChanged(FLIP_SEL_STABLE, prevStable);
+    requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove("noanim")));
+  }
+}
+
+/* ================= tooltip ================= */
+const tip = document.createElement("div");
+tip.id = "tip";
+document.body.appendChild(tip);
+document.addEventListener("mouseover", e => {
+  const t = e.target.closest ? e.target.closest("[data-tip]") : null;
+  if (t) { tip.innerHTML = t.dataset.tip; tip.classList.add("show"); }
+  else tip.classList.remove("show");
+});
+document.addEventListener("mousemove", e => {
+  if (!tip.classList.contains("show")) return;
+  const pad = 14, r = tip.getBoundingClientRect();
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - pad;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - pad;
+  tip.style.left = x + "px";
+  tip.style.top = y + "px";
+});
+
+/* ================= chart animations (เล่นทุกครั้งที่เปิดสไลด์) ================= */
+function sweepDonut(svg) {
+  const circles = [...svg.querySelectorAll("circle[data-frac]")];
+  if (!circles.length) return;
+  const CIRC = 2 * Math.PI * 46, DUR = 950;
+  if (svg._anim) cancelAnimationFrame(svg._anim);
+  const start = performance.now();
+  function frame(now) {
+    const t = Math.min(1, (now - start) / DUR);
+    const T = 1 - Math.pow(1 - t, 3); // easeOutCubic — สัดส่วนวงที่กวาดไปแล้ว
+    circles.forEach(c => {
+      const f = +c.dataset.frac, s = +c.dataset.start;
+      const vis = Math.max(0, Math.min(f, T - s));
+      const len = Math.max(0, vis * CIRC - 2);
+      c.setAttribute("stroke-dasharray", `${len} ${CIRC - len}`);
+    });
+    if (t < 1) svg._anim = requestAnimationFrame(frame);
+  }
+  svg._anim = requestAnimationFrame(frame);
+}
+function animateCharts(slideEl) {
+  if (!slideEl) return;
+  const ease = "cubic-bezier(.25,.7,.3,1)";
+  // กราฟแท่งแนวนอน + แถบ 100% stacked: วิ่งจาก 0 → เต็มความยาว
+  slideEl.querySelectorAll(".hbar[data-w], .stackseg[data-w], .dbar[data-w]").forEach((b, i) => {
+    b.style.transition = "none";
+    b.style.width = "0%";
+    void b.offsetWidth;
+    b.style.transition = `width .8s ${ease} ${Math.min(i * 18, 350)}ms`;
+    b.style.width = b.dataset.w;
+  });
+  // กราฟแท่งแนวตั้ง (รายวัน): โตจากพื้น
+  slideEl.querySelectorAll(".colbar[data-h]").forEach((b, i) => {
+    b.style.transition = "none";
+    b.style.height = "0%";
+    void b.offsetHeight;
+    b.style.transition = `height .8s ${ease} ${i * 60}ms`;
+    b.style.height = b.dataset.h;
+  });
+  // โดนัท: กวาดเป็นวงกลม
+  slideEl.querySelectorAll("svg.donut").forEach(sweepDonut);
+  // journey timeline: เส้นวิ่งจากซ้ายไปขวา + จุด milestone เด้งตามจังหวะเส้น
+  slideEl.querySelectorAll(".tlfill").forEach(f => {
+    f.style.transition = "none";
+    f.style.width = "0%";
+    void f.offsetWidth;
+    f.style.transition = `width 1.3s ${ease} .15s`;
+    f.style.width = "100%";
+  });
+  slideEl.querySelectorAll(".tlnode").forEach((n, i) => {
+    n.style.transition = "none";
+    n.style.transform = "scale(0)";
+    void n.offsetWidth;
+    n.style.transition = `transform .45s cubic-bezier(.34,1.56,.64,1) ${(0.15 + i * 0.55).toFixed(2)}s`;
+    n.style.transform = "scale(1)";
+  });
+}
+
+/* ================= markdown report ================= */
+function buildMarkdownReport() {
+  const mdCell = s => String(s).replace(/\|/g, "/").replace(/\n/g, " ");
+  const mdTable = (headers, rows) =>
+    `| ${headers.map(mdCell).join(" | ")} |\n| ${headers.map(() => "---").join(" | ")} |\n` +
+    rows.map(r => `| ${r.map(mdCell).join(" | ")} |`).join("\n") + "\n";
+  const resTable = (res, topNn = 15) => {
+    const entries = [...res.counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, topNn);
+    return mdTable(["คำตอบ", "จำนวน (คน)", "%"],
+      entries.map(([k, n]) => [k, fmt(n), (res.base ? Math.round(n / res.base * 100) : 0) + "%"])) +
+      `_ผู้ตอบ ${fmt(res.base)} คน_\n`;
+  };
+  const qSection = (title, col, opts = {}) =>
+    `### ${title}\n\n` + resTable(opts.multi ? countMulti(allRows, col) : countSingle(allRows, col, opts.norm), opts.topN || 15) + "\n";
+
+  const total = allRows.length + evRows.length;
+  const dates = [...allRows, ...evRows].map(r => r[0]).filter(Boolean).sort();
+  const dstr = s => { const m = s.match(/^(\d+)\/(\d+)\/(\d+)/); return m ? `${m[2]}/${m[1]}/${m[3]}` : ""; };
+  const now = new Date();
+
+  let md = `# รายงานสรุปผลสำรวจพฤติกรรมการเข้าปั๊ม PTT Station\n\n`;
+  md += `- สร้างรายงานเมื่อ: ${now.toLocaleString("th-TH")}\n`;
+  md += `- ผู้ตอบทั้งหมด: ${fmt(total)} คน (สายน้ำมัน ${fmt(allRows.length)} · EV ${fmt(evRows.length)})\n`;
+  if (dates.length) md += `- ช่วงเก็บข้อมูล: ${dstr(dates[0])} – ${dstr(dates[dates.length - 1])}\n`;
+  md += `- แหล่งข้อมูล: Google Form (อัปเดตอัตโนมัติ) · Dashboard: https://ptt-survey-dashboard.vercel.app\n\n`;
+
+  /* 1. persona overview + matrix */
+  const byP = {}, byL = {};
+  ["P1","P2","P3","P4"].forEach(k => byP[k] = allRows.filter(r => pOf(r) === k));
+  ["L1","L2","L3","L4"].forEach(k => byL[k] = allRows.filter(r => lOf(r) === k));
+  md += `## 1. ภาพรวม Persona\n\n### สัดส่วนตามพฤติกรรมใช้รถ (P)\n\n`;
+  md += mdTable(["กลุ่ม", "คำอธิบาย", "จำนวน (คน)", "%"],
+    ["P1","P2","P3","P4"].map(k => [P_INFO[k].name, P_INFO[k].desc, fmt(byP[k].length), Math.round(byP[k].length / allRows.length * 100) + "%"])) + "\n";
+  md += `### สัดส่วนตามการสะสมแต้ม (L)\n\n`;
+  md += mdTable(["กลุ่ม", "คำอธิบาย", "จำนวน (คน)", "%"],
+    ["L1","L2","L3","L4"].map(k => [L_INFO[k].name, L_INFO[k].desc, fmt(byL[k].length), Math.round(byL[k].length / allRows.length * 100) + "%"])) + "\n";
+  md += `### ตาราง Persona × Loyalty (จำนวนคน)\n\n`;
+  md += mdTable(["P \\ L", "L1", "L2", "L3", "L4", "รวม"],
+    ["P1","P2","P3","P4"].map(p => {
+      const cells = ["L1","L2","L3","L4"].map(l => fmt(byP[p].filter(r => lOf(r) === l).length));
+      return [p, ...cells, fmt(byP[p].filter(r => lOf(r)).length)];
+    }).concat([["รวม", ...["L1","L2","L3","L4"].map(l => fmt(byL[l].length)), fmt(allRows.filter(r => pOf(r) && lOf(r)).length)]])) + "\n";
+
+  /* 2. metrics × personas */
+  md += `## 2. พฤติกรรมสำคัญเทียบราย Persona (% ของแต่ละกลุ่ม)\n\n`;
+  md += mdTable(["พฤติกรรม", "P1", "P2", "P3", "P4", "รวม"],
+    METRICS.map(m => [m.label,
+      ...["P1","P2","P3","P4"].map(k => Math.round(pctMetric(byP[k], m.fn).pct) + "%"),
+      Math.round(pctMetric(allRows, m.fn).pct) + "%"])) + "\n";
+
+  /* 2.1 demographic impact */
+  const spl = demoSplits();
+  md += `### พฤติกรรมแตกต่างตาม Demographic ไหม (% ของแต่ละกลุ่ม)\n\n`;
+  md += mdTable(["พฤติกรรม", "กทม.", "ตจว.", "หญิง", "ชาย", "<40 ปี", "40 ปี+"],
+    METRICS.map(m => [m.label,
+      ...spl.flatMap(sp => [Math.round(pctMetric(sp.a.rows, m.fn).pct) + "%", Math.round(pctMetric(sp.b.rows, m.fn).pct) + "%"])])) + "\n";
+
+  /* 3. key findings per persona */
+  md += `## 3. Key Findings ราย Persona\n\n`;
+  for (const p of ["P1","P2","P3","P4"]) {
+    const rows = byP[p], n = rows.length;
+    const others = allRows.filter(r => pOf(r) !== p);
+    const devs = METRICS.map(m => {
+      const s = pctMetric(rows, m.fn), o = pctMetric(others, m.fn);
+      return { m, s, o, d: s.pct - o.pct };
+    }).filter(x => x.s.base >= 30).sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+    const topOf = res => [...res.counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    const pcOf = (e, base) => e && base ? Math.round(e[1] / base * 100) : 0;
+    const fact = (label, col, multi) => {
+      const res = multi ? countMulti(rows, col) : countSingle(rows, col);
+      const top = topOf(res);
+      return top ? `- ${label}: **${mdCell(top[0])}** (${pcOf(top, res.base)}%)\n` : "";
+    };
+    md += `### ${P_INFO[p].name} — ${fmt(n)} คน (${Math.round(n / allRows.length * 100)}%)\n\n${P_INFO[p].desc}\n\n`;
+    const age = topOf(countSingle(rows, COL.age, normAge)), job = topOf(countSingle(rows, COL.job)), gen = topOf(countSingle(rows, COL.gender));
+    if (age && job && gen) md += `- กลุ่มใหญ่สุด: อายุ ${age[0]} (${Math.round(age[1]/n*100)}%) · ${job[0]} (${Math.round(job[1]/n*100)}%) · เพศ${gen[0]} (${Math.round(gen[1]/n*100)}%)\n`;
+    if (devs[0]) md += `- เรื่องเด่นที่สุด: **${devs[0].m.label} ${Math.round(devs[0].s.pct)}%** (กลุ่มอื่นๆ ${Math.round(devs[0].o.pct)}%)\n`;
+    md += fact("เหตุผลอันดับ 1 ที่เลือกแวะปั๊ม", COL.whyStation, true);
+    md += fact("ปัญหาที่เจอบ่อยที่สุด", COL.stationProblems, true);
+    md += fact("ช่วงเวลาที่แวะบ่อยที่สุด", COL.timeSlots, true);
+    md += fact("วิธีจ่ายเงินยอดนิยม", COL.payment, false);
+    const fRes = countThemes(rows, COL.features);
+    const fTop = [...fRes.counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (fTop) md += `- ฟีเจอร์ที่อยากได้มากที่สุด (จัดกลุ่มจากคำตอบปลายเปิด): **${mdCell(fTop[0])}** (${Math.round(fTop[1]/fRes.base*100)}%)\n`;
+    const ideas = devs.filter(x => Math.abs(x.d) >= 3)
+      .map(x => ({ t: SOWHAT[x.m.k + (x.d >= 0 ? "+" : "-")], x })).filter(o => o.t).slice(0, 3);
+    if (ideas.length) {
+      md += `\n**So what? — โอกาสสำหรับกลุ่มนี้**\n\n`;
+      md += mdTable(["Insight", "%", "Action"], ideas.map(o => [o.t.i, `${Math.round(o.x.s.pct)}% (อื่น ${Math.round(o.x.o.pct)}%)`, o.t.a])) ;
+    }
+    md += "\n";
+  }
+
+  /* 4. loyalty deep dive */
+  md += `## 4. blueplus+ & การสะสมแต้ม (เจาะลึกรายกลุ่ม L)\n\n`;
+  const hasAppMdN = allRows.filter(r => (r[COL.appsInstalled] || "").includes("blueplus+")).length;
+  md += `- มีแอป blueplus+ ในมือถือ: ${allRows.length ? Math.round(hasAppMdN / allRows.length * 100) : 0}% (เฉพาะสายน้ำมัน ไม่รวมผู้ใช้ EV)\n- L2 สะสมแต้มแต่ยังไม่มีแอป (เป้าชวนโหลด): ${fmt(byL.L2.length)} คน\n\n`;
+  const lBlock = (k, blocks) => {
+    md += `### ${L_INFO[k].name} — ${fmt(byL[k].length)} คน\n\n${L_INFO[k].desc}\n\n`;
+    for (const [title, col, topn] of blocks) {
+      const res = countMulti(byL[k], col);
+      const items = [...res.counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, topn);
+      if (items.length) md += `**${title}** (ตอบ ${fmt(res.base)} คน)\n` + items.map(([t, c]) => `- ${mdCell(t)} — ${res.base ? Math.round(c/res.base*100) : 0}%`).join("\n") + "\n\n";
+    }
+  };
+  lBlock("L1", [["ปัญหาแอปที่เจอบ่อย", COL.appProblems, 3]]);
+  lBlock("L2", [["ทำไมยังไม่มีแอป", COL.noAppWhy, 3], ["อะไรจะทำให้ยอมโหลดแอป", COL.appTrigger, 2]]);
+  lBlock("L3", [["แอปที่ใช้อยู่", COL.appsInstalled, 3], ["ทำไมไม่ใช้ blueplus+", COL.noAppWhy, 2]]);
+  lBlock("L4", [["ทำไมไม่สะสมแต้ม/ไม่มีแอป", COL.noAppWhy, 3], ["อะไรจะจูงใจได้บ้าง", COL.appTrigger, 2]]);
+
+  /* 5. EV */
+  md += `## 5. ผู้ใช้ EV — ${fmt(evRows.length)} คน\n\n`;
+  const weekly = pctMetric(evRows, r => { const v = (r[COL.evChargeFreq] || "").trim(); return v ? /สัปดาห์|ทุกวัน/.test(v) : null; });
+  md += `- ชาร์จนอกบ้านอย่างน้อยสัปดาห์ละครั้ง: ${Math.round(weekly.pct)}%\n\n`;
+  const evQ = (title, col, multi = true) => {
+    md += `### ${title}\n\n` + resTable(multi ? countMulti(evRows, col) : countSingle(evRows, col), 10) + "\n";
+  };
+  evQ("ชาร์จนอกบ้านบ่อยแค่ไหน", COL.evChargeFreq, false);
+  evQ("เหตุผลที่เลือกสถานีชาร์จ", COL.evWhy);
+  evQ("แอปฯ สถานีชาร์จที่มีในมือถือ", COL.evApps);
+  evQ("ปัญหาในแอปฯ สถานีชาร์จ", COL.evAppProblems);
+  evQ("ปัญหาที่สถานีชาร์จประจำ", COL.evStationProblems);
+  md += `### ฟีเจอร์/บริการที่อยากได้ (จัดกลุ่มจากคำตอบปลายเปิด)\n\n` + resTable(countThemes(evRows, COL.evFeatures), 10) + "\n";
+
+  /* 6. all dashboard questions */
+  md += `## 6. ผลรวมทุกคำถาม (สายน้ำมัน ${fmt(allRows.length)} คน)\n\n`;
+  md += qSection("ภูมิภาคที่อาศัย", COL.region);
+  md += qSection("ช่วงอายุ", COL.age, { norm: normAge });
+  md += qSection("เพศ", COL.gender);
+  md += qSection("อาชีพหลัก (จัดกลุ่มจากคำตอบพิมพ์เอง)", COL.job, { norm: normJob, topN: 11 });
+  md += qSection("รถที่ใช้เป็นหลัก", COL.vehicle);
+  md += qSection("แบรนด์ปั๊มที่ใช้บ่อย", COL.brand, { multi: true, topN: 8 });
+  md += qSection("แวะปั๊มบ่อยแค่ไหน", COL.visitFreq);
+  md += qSection("เลือกปั๊มประจำหรือเปรียบเทียบหลายแบรนด์", COL.regularVsCompare);
+  md += qSection("เหตุผลที่เลือกแวะปั๊ม", COL.whyStation, { multi: true });
+  md += qSection("ก่อนออกรถ เช็กอะไรในมือถือ", COL.checkPhone, { multi: true });
+  md += qSection("ตัดสินใจแวะปั๊มล่วงหน้านานแค่ไหน", COL.decideAhead);
+  md += qSection("ถ้ารู้ล่วงหน้าว่าปั๊มคิวสั้น–ห้องน้ำสะอาด–ที่จอดว่าง จะวางแผนแวะไหม", COL.planIfKnow);
+  md += qSection("พฤติกรรมการเติมน้ำมัน", COL.fuelBehavior);
+  md += qSection("นอกจากเติมน้ำมัน ทำอะไรบ้าง", COL.activities, { multi: true });
+  md += qSection("ปัญหาที่เคยเจอที่ปั๊มประจำ", COL.stationProblems, { multi: true });
+  md += qSection("ช่วงเวลาที่แวะบ่อยที่สุด", COL.timeSlots, { multi: true });
+  md += qSection("วิธีจ่ายค่าน้ำมันที่ใช้บ่อยที่สุด", COL.payment);
+  md += qSection("ปัญหาการจ่ายเงินที่เคยพบ", COL.payProblems, { multi: true });
+  md += qSection("ความสนใจระบบจ่ายเงินอัตโนมัติ", COL.autoPay);
+  md += qSection("ซื้อกาแฟ/เครื่องดื่มบ่อยแค่ไหน", COL.coffeeFreq);
+  md += qSection("ร้านกาแฟมีผลต่อการเลือกแวะปั๊มแค่ไหน", COL.cafeInfluence);
+  md += qSection("ความสนใจสั่งกาแฟล่วงหน้า", COL.preOrder);
+  md += qSection("ถ้าแจ้งโปรฯ ลด 20% ใน 15 นาที ขณะอยู่ในปั๊ม", COL.flashPromo);
+  md += qSection("ใช้ระบบสะสมแต้มบ่อยแค่ไหน", COL.loyaltyFreq);
+  md += qSection("แลกแต้มบ่อยแค่ไหน", COL.redeemFreq);
+  md += qSection("แอปฯ ของปั๊มสำคัญแค่ไหน", COL.appImportance);
+  md += qSection("แอปฯ ปั๊มที่ติดตั้งในมือถือ", COL.appsInstalled, { multi: true, topN: 8 });
+  md += qSection("ปัญหาที่เคยเจอในแอปฯ ปั๊ม", COL.appProblems, { multi: true });
+  md += qSection("หลังออกจากปั๊มนานแค่ไหนถึงเปิดแอปฯ", COL.openWhen);
+  md += qSection("เปิดแอปฯ เพื่อทำอะไร", COL.openWhat, { multi: true, topN: 9 });
+  md += qSection("รู้จัก blueplus+ หรือไม่", COL.bpAware);
+
+  /* 7. raw feature answers */
+  md += `## 7. ฟีเจอร์ที่อยากได้ — ธีมและตัวอย่างคำตอบจริง\n\n### ธีม (สายน้ำมัน)\n\n` + resTable(countThemes(allRows, COL.features), 10) + "\n";
+  const rawTop = (rows, col, n) => {
+    const c = new Map(); let base = 0;
+    for (const r of rows) { const v = (r[col] || "").trim(); if (!v) continue; base++; c.set(v, (c.get(v) || 0) + 1); }
+    return { items: [...c.entries()].sort((a, b) => b[1] - a[1]).slice(0, n), base };
+  };
+  const rf = rawTop(allRows, COL.features, 30);
+  md += `### คำตอบจริงที่พบบ่อยที่สุด 30 อันดับ (สายน้ำมัน · ตอบ ${fmt(rf.base)} คน)\n\n`;
+  md += mdTable(["คำตอบ", "จำนวน (คน)"], rf.items.map(([t, c]) => [t, fmt(c)])) + "\n";
+  const rfe = rawTop(evRows, COL.evFeatures, 15);
+  md += `### คำตอบจริงที่พบบ่อยที่สุด 15 อันดับ (EV · ตอบ ${fmt(rfe.base)} คน)\n\n`;
+  md += mdTable(["คำตอบ", "จำนวน (คน)"], rfe.items.map(([t, c]) => [t, fmt(c)])) + "\n";
+
+  return md;
+}
+document.getElementById("dlbtn").onclick = () => {
+  if (!allRows.length) return;
+  const md = buildMarkdownReport();
+  const now = new Date();
+  const pad = x => String(x).padStart(2, "0");
+  const name = `ptt-survey-report-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}.md`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([md], { type: "text/markdown;charset=utf-8" }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+/* ================= raw-answer modal ================= */
+let modalState = { group: "ALL", theme: "", q: "" };
+const MODAL_GROUPS = [["ALL","ทั้งหมด"],["P1","P1"],["P2","P2"],["P3","P3"],["P4","P4"],["EV","EV"]];
+function openRawModal(group = "ALL", theme = "") {
+  modalState = { group: MODAL_GROUPS.some(g => g[0] === group) ? group : "ALL", theme: theme || "", q: "" };
+  document.getElementById("modalsearch").value = "";
+  renderModal();
+  document.getElementById("modal").classList.add("open");
+  document.getElementById("modalsearch").focus();
+}
+function renderModal() {
+  const gWrap = document.getElementById("mGroups");
+  gWrap.querySelectorAll(".chip").forEach(c => c.remove());
+  for (const [k, label] of MODAL_GROUPS) {
+    const b = document.createElement("button");
+    b.className = "chip" + (modalState.group === k ? " on" : "");
+    b.textContent = label;
+    b.onclick = () => { modalState.group = k; renderModal(); };
+    gWrap.appendChild(b);
+  }
+  document.getElementById("mTheme").innerHTML = `<option value="">ทุกธีม</option>` +
+    FEATURE_THEMES.map(t => `<option value="${escAttr(t[0])}"${modalState.theme === t[0] ? " selected" : ""}>${esc(t[0])}</option>`).join("");
+  renderModalList();
+}
+function renderModalList() {
+  const groups = modalState.group === "ALL" ? ["P1","P2","P3","P4","EV"] : [modalState.group];
+  const counts = new Map(); let base = 0;
+  for (const g of groups) {
+    const rowsG = g === "EV" ? evRows : allRows.filter(r => pOf(r) === g);
+    const col = g === "EV" ? COL.evFeatures : COL.features;
+    for (const r of rowsG) {
+      const v = (r[col] || "").trim();
+      if (!v) continue;
+      base++;
+      counts.set(v, (counts.get(v) || 0) + 1);
+    }
+  }
+  let items = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const th = FEATURE_THEMES.find(t => t[0] === modalState.theme);
+  if (th) items = items.filter(([t]) => matchTheme(t, th));
+  const q = modalState.q.trim().toLowerCase();
+  if (q) items = items.filter(([t]) => t.toLowerCase().includes(q));
+
+  const gName = modalState.group === "ALL" ? "ทุกกลุ่ม (น้ำมัน + EV)" : (modalState.group === "EV" ? "ผู้ใช้ EV" : P_INFO[modalState.group].name);
+  document.getElementById("modaltitle").textContent = "ฟีเจอร์/บริการที่อยากได้ — คำตอบจริง";
+  document.getElementById("modalsub").textContent =
+    `${gName}${modalState.theme ? ` · ธีม "${modalState.theme}"` : ""} · ผู้ตอบ ${fmt(base)} คน · ตรงเงื่อนไข ${fmt(items.length)} ข้อความไม่ซ้ำ`;
+  const MAX = 400;
+  const shown = items.slice(0, MAX);
+  document.getElementById("modallist").innerHTML =
+    shown.map(([t, n]) => `<div class="rawrow"><span class="rawtxt">${esc(t)}</span><span class="rawn">${fmt(n)} คน</span></div>`).join("") +
+    (items.length > MAX ? `<div class="rawrow"><span class="rawtxt" style="color:var(--muted)">…และอีก ${fmt(items.length - MAX)} ข้อความ (พิมพ์ค้นหาเพื่อกรอง)</span></div>` : "") +
+    (!items.length ? `<div class="rawrow"><span class="rawtxt" style="color:var(--muted)">ไม่พบคำตอบที่ตรงกับเงื่อนไข</span></div>` : "");
+}
+function closeModal() { document.getElementById("modal").classList.remove("open"); }
+document.getElementById("modalclose").onclick = closeModal;
+document.getElementById("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+document.getElementById("modalsearch").addEventListener("input", e => { modalState.q = e.target.value; renderModalList(); });
+document.getElementById("mTheme").addEventListener("change", e => { modalState.theme = e.target.value; renderModalList(); });
+document.addEventListener("click", e => {
+  const b = e.target.closest ? e.target.closest(".rawlink") : null;
+  if (b) { openRawModal(b.dataset.raw); return; }
+  const c = e.target.closest ? e.target.closest(".mcell[data-mgroup]") : null;
+  if (c) openRawModal(c.dataset.mgroup, c.dataset.mtheme || "");
+});
+
+/* ================= carousel ================= */
+function goTo(i) {
+  const prev = cur;
+  cur = Math.max(0, Math.min(SLIDE_IDS.length - 1, i));
+  document.getElementById("deck").style.transform = `translateX(-${cur * 100}%)`;
+  document.querySelectorAll(".navdot").forEach((d, j) => d.classList.toggle("on", j === cur));
+  document.getElementById("counter").innerHTML = `<b>${esc(SLIDE_NAMES[cur])}</b> · ${cur + 1}/${SLIDE_IDS.length}`;
+  // เล่นอนิเมชันเฉพาะตอนเปลี่ยนสไลด์ (ไม่เล่นซ้ำตอนรีเฟรชข้อมูลเงียบๆ)
+  const slides = document.querySelectorAll(".slide");
+  slides.forEach((s, j) => s.classList.toggle("entering", j === cur && prev !== cur));
+  clearTimeout(goTo._t);
+  goTo._t = setTimeout(() => slides.forEach(s => s.classList.remove("entering")), 900);
+  if (prev !== cur) animateCharts(slides[cur]);
+  document.body.classList.toggle("on-dash", SLIDE_IDS[cur] === "s-dash");
+  tip.classList.remove("show");
+}
+document.getElementById("prevBtn").onclick = e => { e.currentTarget.blur(); goTo(cur - 1); };
+document.getElementById("nextBtn").onclick = e => { e.currentTarget.blur(); goTo(cur + 1); };
+document.addEventListener("keydown", e => {
+  if (document.getElementById("modal").classList.contains("open")) {
+    if (e.key === "Escape") closeModal();
+    return; // ระหว่างเปิดหน้าต่างคำตอบจริง ปุ่มลูกศร/พิมพ์ค้นหาต้องไม่เลื่อนสไลด์
+  }
+  if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); goTo(cur + 1); }
+  else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); goTo(cur - 1); }
+  else if (e.key === "Home") goTo(0);
+  else if (e.key === "End") goTo(SLIDE_IDS.length - 1);
+  else if (e.key.toLowerCase() === "f") toggleFS();
+});
+let touchX = null, touchY = null;
+document.addEventListener("touchstart", e => { touchX = e.touches[0].clientX; touchY = e.touches[0].clientY; }, { passive: true });
+document.addEventListener("touchend", e => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  const dy = e.changedTouches[0].clientY - touchY;
+  // เปลี่ยนสไลด์เฉพาะปัดแนวนอนชัดเจน ไม่ชนกับการเลื่อนอ่านแนวตั้ง
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) goTo(cur + (dx < 0 ? 1 : -1));
+  touchX = touchY = null;
+}, { passive: true });
+function toggleFS() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen();
+}
+document.getElementById("fsbtn").onclick = toggleFS;
+
+/* ================= loading loop ================= */
+async function load(first = false) {
+  try {
+    const res = await fetch(CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) throw new Error("ไม่มีข้อมูลใน CSV");
+    mapColumns(rows[0]);
+    const data = rows.slice(1).filter(r => r.length > 5 && r[0]);
+    const total = data.length;
+
+    // เงียบๆ: ถ้าจำนวนคำตอบไม่เปลี่ยนและเคย render แล้ว ไม่ต้องวาดใหม่
+    const changed = total !== prevCount;
+    allRows = data.filter(r => (r[COL.lSeg] || "").trim() !== "" || (r[COL.evChargeFreq] || "").trim() === "");
+    evRows = data.filter(r => (r[COL.lSeg] || "").trim() === "" && (r[COL.evChargeFreq] || "").trim() !== "");
+
+    const badge = document.getElementById("newBadge");
+    if (!first && total > prevCount) {
+      badge.textContent = "+" + fmt(total - prevCount) + " ใหม่";
+      badge.style.display = "inline-block";
+      setTimeout(() => badge.style.display = "none", 12000);
+    }
+    prevCount = total;
+
+    if (!firstRendered || changed) {
+      renderAll(!first && firstRendered);
+      firstRendered = true;
+    }
+    lastOkTime = new Date();
+    document.getElementById("liveDot").classList.remove("stale");
+    if (first) {
+      document.getElementById("loading").style.display = "none";
+      goTo(0);
+      document.getElementById("s-title").classList.add("entering");
+      setTimeout(() => document.getElementById("s-title").classList.remove("entering"), 900);
+      animateCharts(document.getElementById("s-title"));
+    }
+  } catch (e) {
+    document.getElementById("liveDot").classList.add("stale");
+    if (!firstRendered) {
+      document.getElementById("loading").innerHTML =
+        `<div style="color:var(--crit)">ดึงข้อมูลไม่สำเร็จ (${esc(e.message)})</div><div class="hint">จะลองใหม่อัตโนมัติใน 30 วินาที</div>`;
+    }
+  }
+  countdown = REFRESH_MS / 1000;
+}
+setInterval(() => {
+  countdown = Math.max(0, countdown - 1);
+  const timeStr = lastOkTime ? lastOkTime.toLocaleTimeString("th-TH") : "–";
+  document.getElementById("liveText").textContent = `อัปเดตล่าสุด ${timeStr}`;
+}, 1000);
+
+buildDeckShell();
+goTo(0);
+load(true);
+setInterval(load, REFRESH_MS);
+</script>
+</body>
+</html>
